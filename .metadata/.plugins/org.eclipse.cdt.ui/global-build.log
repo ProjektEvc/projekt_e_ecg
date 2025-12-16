@@ -39,3 +39,168 @@ Finished building: default.size.stdout
  
 Finished building: STM32DISCO.list
  
+20:04:34 **** Incremental Build of configuration Debug for project STM32DISCO ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F429xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:62:10: warning: type defaults to 'int' in declaration of 'streaming' [-Wimplicit-int]
+   62 | volatile streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+      |          ^~~~~~~~~
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:575:28: error: 'USART5' undeclared (first use in this function); did you mean 'UART5'?
+  575 |     if (huart->Instance == USART5)
+      |                            ^~~~~~
+      |                            UART5
+../Core/Src/main.c:575:28: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c:582:17: warning: implicit declaration of function 'strcmp' [-Wimplicit-function-declaration]
+  582 |             if (strcmp(rx_buffer, "#?#") == 0)
+      |                 ^~~~~~
+../Core/Src/main.c:21:1: note: include '<string.h>' or provide a declaration of 'strcmp'
+   20 | #include "main.h"
+  +++ |+#include <string.h>
+   21 | 
+../Core/Src/main.c:585:36: error: 'huart1' undeclared (first use in this function); did you mean 'huart'?
+  585 |                 HAL_UART_Transmit(&huart1, (uint8_t*)"!", 1, 100);
+      |                                    ^~~~~~
+      |                                    huart
+../Core/Src/main.c:591:17: warning: implicit declaration of function 'start_streaming' [-Wimplicit-function-declaration]
+  591 |                 start_streaming();
+      |                 ^~~~~~~~~~~~~~~
+../Core/Src/main.c:596:17: warning: implicit declaration of function 'stop_streaming' [-Wimplicit-function-declaration]
+  596 |                 stop_streaming();
+      |                 ^~~~~~~~~~~~~~
+../Core/Src/main.c: At top level:
+../Core/Src/main.c:610:6: warning: conflicting types for 'start_streaming'; have 'void(void)'
+  610 | void start_streaming(void)
+      |      ^~~~~~~~~~~~~~~
+../Core/Src/main.c:591:17: note: previous implicit declaration of 'start_streaming' with type 'void(void)'
+  591 |                 start_streaming();
+      |                 ^~~~~~~~~~~~~~~
+../Core/Src/main.c:619:6: warning: conflicting types for 'stop_streaming'; have 'void(void)'
+  619 | void stop_streaming(void)
+      |      ^~~~~~~~~~~~~~
+../Core/Src/main.c:596:17: note: previous implicit declaration of 'stop_streaming' with type 'void(void)'
+  596 |                 stop_streaming();
+      |                 ^~~~~~~~~~~~~~
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+20:05:32 **** Incremental Build of configuration Debug for project STM32DISCO ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F429xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:62:10: warning: type defaults to 'int' in declaration of 'streaming' [-Wimplicit-int]
+   62 | volatile streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+      |          ^~~~~~~~~
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:577:28: error: 'USART5' undeclared (first use in this function); did you mean 'UART5'?
+  577 |     if (huart->Instance == USART5)
+      |                            ^~~~~~
+      |                            UART5
+../Core/Src/main.c:577:28: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c:584:17: warning: implicit declaration of function 'strcmp' [-Wimplicit-function-declaration]
+  584 |             if (strcmp(rx_buffer, "#?#") == 0)
+      |                 ^~~~~~
+../Core/Src/main.c:21:1: note: include '<string.h>' or provide a declaration of 'strcmp'
+   20 | #include "main.h"
+  +++ |+#include <string.h>
+   21 | 
+../Core/Src/main.c:587:36: error: 'huart1' undeclared (first use in this function); did you mean 'huart'?
+  587 |                 HAL_UART_Transmit(&huart1, (uint8_t*)"!", 1, 100);
+      |                                    ^~~~~~
+      |                                    huart
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+20:06:12 **** Incremental Build of configuration Debug for project STM32DISCO ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F429xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:62:10: warning: type defaults to 'int' in declaration of 'streaming' [-Wimplicit-int]
+   62 | volatile streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+      |          ^~~~~~~~~
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:584:17: warning: implicit declaration of function 'strcmp' [-Wimplicit-function-declaration]
+  584 |             if (strcmp(rx_buffer, "#?#") == 0)
+      |                 ^~~~~~
+../Core/Src/main.c:21:1: note: include '<string.h>' or provide a declaration of 'strcmp'
+   20 | #include "main.h"
+  +++ |+#include <string.h>
+   21 | 
+../Core/Src/main.c:608:30: error: 'huart1' undeclared (first use in this function); did you mean 'huart'?
+  608 |         HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
+      |                              ^~~~~~
+      |                              huart
+../Core/Src/main.c:608:30: note: each undeclared identifier is reported only once for each function it appears in
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+20:06:29 **** Incremental Build of configuration Debug for project STM32DISCO ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F429xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:62:10: warning: type defaults to 'int' in declaration of 'streaming' [-Wimplicit-int]
+   62 | volatile streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+      |          ^~~~~~~~~
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:584:17: warning: implicit declaration of function 'strcmp' [-Wimplicit-function-declaration]
+  584 |             if (strcmp(rx_buffer, "#?#") == 0)
+      |                 ^~~~~~
+../Core/Src/main.c:21:1: note: include '<string.h>' or provide a declaration of 'strcmp'
+   20 | #include "main.h"
+  +++ |+#include <string.h>
+   21 | 
+arm-none-eabi-gcc -o "STM32DISCO.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\STM32DISCO\STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32DISCO.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: STM32DISCO.elf
+ 
+arm-none-eabi-size  STM32DISCO.elf 
+arm-none-eabi-objdump -h -S STM32DISCO.elf  > "STM32DISCO.list"
+   text	   data	    bss	    dec	    hex	filename
+  16144	     12	   1852	  18008	   4658	STM32DISCO.elf
+Finished building: default.size.stdout
+ 
+Finished building: STM32DISCO.list
+ 
+20:12:04 **** Incremental Build of configuration Debug for project STM32DISCO ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F429xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:62:10: warning: type defaults to 'int' in declaration of 'streaming' [-Wimplicit-int]
+   62 | volatile streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+      |          ^~~~~~~~~
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:584:17: warning: implicit declaration of function 'strcmp' [-Wimplicit-function-declaration]
+  584 |             if (strcmp(rx_buffer, "#?#") == 0)
+      |                 ^~~~~~
+../Core/Src/main.c:21:1: note: include '<string.h>' or provide a declaration of 'strcmp'
+   20 | #include "main.h"
+  +++ |+#include <string.h>
+   21 | 
+arm-none-eabi-gcc -o "STM32DISCO.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\STM32DISCO\STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32DISCO.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: STM32DISCO.elf
+ 
+arm-none-eabi-size  STM32DISCO.elf 
+arm-none-eabi-objdump -h -S STM32DISCO.elf  > "STM32DISCO.list"
+   text	   data	    bss	    dec	    hex	filename
+  16132	     12	   1852	  17996	   464c	STM32DISCO.elf
+Finished building: default.size.stdout
+ 
+Finished building: STM32DISCO.list
+ 
+20:39:04 **** Incremental Build of configuration Debug for project STM32DISCO ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F429xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:62:10: warning: type defaults to 'int' in declaration of 'streaming' [-Wimplicit-int]
+   62 | volatile streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+      |          ^~~~~~~~~
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:584:17: warning: implicit declaration of function 'strcmp' [-Wimplicit-function-declaration]
+  584 |             if (strcmp(rx_buffer, "#?#") == 0)
+      |                 ^~~~~~
+../Core/Src/main.c:21:1: note: include '<string.h>' or provide a declaration of 'strcmp'
+   20 | #include "main.h"
+  +++ |+#include <string.h>
+   21 | 
+arm-none-eabi-gcc -o "STM32DISCO.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\STM32DISCO\STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32DISCO.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: STM32DISCO.elf
+ 
+arm-none-eabi-size  STM32DISCO.elf 
+arm-none-eabi-objdump -h -S STM32DISCO.elf  > "STM32DISCO.list"
+   text	   data	    bss	    dec	    hex	filename
+  16132	     12	   1852	  17996	   464c	STM32DISCO.elf
+Finished building: default.size.stdout
+ 
+Finished building: STM32DISCO.list
+ 

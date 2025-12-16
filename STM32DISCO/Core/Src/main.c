@@ -54,6 +54,13 @@ char transmit_buffer[TX_BLOCK_SIZE]; //string veličine 64 byte-a koji šaljemo
 char recieve_buffer[TX_BLOCK_SIZE]; //trenutačno ne korisitmo
 uint8_t dma_buffer[TX_BLOCK_SIZE]; //više manje identično što i char, no DMA ne zna što je character, DMA zna samo što je byte  (uint8_t)
 
+
+uint8_t rx_byte;
+char rx_buffer[32];
+uint8_t rx_index = 0;
+
+volatile streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+
 const uint16_t ecg_mock[ECG_LEN] = {
     // baseline
     2048,2048,2048,2048,2049,2050,2051,2050,2049,2048,
@@ -110,6 +117,8 @@ static void MX_DMA_Init(void);
 static void MX_UART5_Init(void);
 /* USER CODE BEGIN PFP */
 //PFP = private function prototypes
+void start_streaming(void);
+void stop_streaming(void);
 void fill_tx_dma_block(void); //punjenje DMA blokova
 void send_block_dma(void); //slanje blokova preko UART-a
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart); //poziva se nakon prijenosa svakog bloka podataka
@@ -151,7 +160,8 @@ int main(void)
   MX_DMA_Init();
   MX_UART5_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Transmit_DMA(&huart5, dma_buffer, TX_BLOCK_SIZE);
+//  HAL_UART_Transmit_DMA(&huart5, dma_buffer, TX_BLOCK_SIZE);
+  HAL_UART_Receive_IT(&huart5, &rx_byte, 1); //omogucujemo interrupt da poveemo python sa mikrokontrolerom
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -560,6 +570,60 @@ void send_block_dma(void)
 
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+//Nakon što se triggera interrupt na rx, ova se funkcija automatski poziva
+
+{
+    if (huart->Instance == UART5)
+    {
+        if (rx_byte == '\n')   // kraj poruke
+        {
+            rx_buffer[rx_index] = '\0';
+            rx_index = 0;
+
+            if (strcmp(rx_buffer, "#?#") == 0)
+            {
+                // SYNC zahtjev saljemo sa uartom u python skriptu
+            	//preko uarta5 šaljemo znak !, koji sadrži samo jedan bajt i timeout je 100ms
+                HAL_UART_Transmit(&huart5, (uint8_t*)"!", 1, 100);
+            }
+            else if (strcmp(rx_buffer, "#A#") == 0)
+            {
+            	//strcmp(a,b) - usporedjuje dva stringa i ako su jednaki vraca nulu
+                // START STREAM
+                start_streaming();
+            }
+            else if (strcmp(rx_buffer, "#S#") == 0)
+            {
+                // STOP STREAM
+                stop_streaming();
+            }
+        }
+        else
+        {
+            rx_buffer[rx_index++] = rx_byte;
+            if (rx_index >= sizeof(rx_buffer))
+                rx_index = 0;
+        }
+
+        HAL_UART_Receive_IT(&huart5, &rx_byte, 1);
+    }
+}
+
+void start_streaming(void)
+{
+    if (!streaming)
+    {
+        streaming = 1;
+        HAL_UART_Transmit_DMA(&huart5, dma_buffer, TX_BLOCK_SIZE);
+    }
+}
+
+void stop_streaming(void)
+{
+    streaming = 0;
+    HAL_UART_AbortTransmit(&huart5);
+}
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {

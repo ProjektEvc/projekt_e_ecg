@@ -1,8 +1,11 @@
 import serial.tools.list_ports
+import time 
 
 class SerialControl():
     def __init__(self):
         self.com_list = []
+        self.sync_cnt = 200 #granična vrijednost pokušaja
+
 
 
     def getCOMList(self):
@@ -48,6 +51,57 @@ class SerialControl():
         except:
             self.ser.status = False
 
+
+
+    def SerialSync(self, gui):
+        self.threading = True
+        cnt = 0
+        while(self.threading):
+            try:
+                #nas mikrokontoler će primati sync = "#?#\n"
+                self.ser.write(gui.data.sync.encode())
+                gui.conn.sync_status["text"] = "..Sync.."
+                gui.conn.sync_status["fg" ] = "orange"
+                gui.data.RowMsg = self.ser.readline()
+
+                gui.data.DecodeMsg() #it DataMaster klase korisitmo funkciju decodemsg
+               
+               
+                if gui.data.sync_ok in gui.data.msg[0]: #ako je istina to znači da je mikrokontroler uspješno primio i vratio poruku nazad
+                #    if int(gui.data.msg[1]) > 0:
+                #         pass
+                #ovo ce sluzit ako cemo htjet ikad imat vise kanala
+                    gui.conn.btn_start_stream["state"] = "active"
+                    gui.conn.btn_add_chart["state"] = "active"
+                    gui.conn.btn_remove_chart["state"] = "active"
+                    gui.conn.save_check["state"] = "active"
+                    gui.conn.sync_status["fg"] = "green"
+                    gui.conn.sync_status["text"] = "OK"
+                    gui.conn.ch_status["text"] = "1"  #za sad imamo jedan kanal
+                    gui.data.SynchChannel = 1 #za sad imamo jedan kanal #ovo dvoje bi inace bilo int(gui.data.msg[1])
+                    gui.data.GenChannels() #stvorit cemo listu od jednog kanala
+
+                    gui.data.buildYdata()
+
+                    self.threading = False
+  
+                print(gui.data.RowMsg)
+                print("tu smo")
+
+                if(self.threading == False):
+                    break
+            
+            except Exception as e:
+                print(e)
+            cnt += 1
+
+            if cnt > self.sync_cnt:
+                cnt = 0
+                gui.conn.sync_status["text"] = "Failed"
+                gui.conn.sync_status["fg" ] = "red"
+                time.sleep(0.5) #neki delay da vidimo crvenu obju
+                if(self.threading == False):
+                    break
 
 if __name__ == "__main__":
     SerialControl()
