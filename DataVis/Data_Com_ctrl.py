@@ -17,6 +17,7 @@ class DataMaster():
     def DecodeMsg(self):
         temp = self.RowMsg.decode('utf8') #podatak koji primimo na COM port trebamo dekodirat sa pythonovom funkcijom sa utf8 standrdom
         if len(temp) > 0:
+            print("Tu smo")
             self.msg = temp.split(",")
             print(f"split msg: {self.msg}")
 

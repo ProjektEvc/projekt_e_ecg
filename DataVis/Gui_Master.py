@@ -3,6 +3,11 @@ from tkinter import messagebox
 import threading
 
 
+#treba pip install matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.backends.backend_tkagg as FigureCanvasAgg
+
+
 class RootGUI:
     def __init__(self):
         self.root = Tk(); #inicijalizacija glavnog root "Frame-a"
@@ -164,6 +169,8 @@ class ConnGUI():
 
 
         self.ConnGUIOpen()
+        self.chartMaster = DisGUI(self.root, self.serial, self.data)
+
     
     #ova funkcija će raditi slično što i publish()
     def ConnGUIOpen(self):
@@ -206,7 +213,7 @@ class ConnGUI():
         pass
 
     def new_chart(self):
-        pass
+        self.chartMaster.AddChannelMaster()
 
     def remove_chart(self):
         pass
@@ -215,7 +222,79 @@ class ConnGUI():
         pass
 
 
+
+class DisGUI():
+    def __init__(self, root, serial, data):
+        self.root = root
+        self.serial = serial
+        self.data = data
+
+        #ova lista će sadržavat sve frame-ove koji se odnose na display dio GUI-a
+        self.frames = []
+        self.framesCol = 0
+        self.framesRow = 4  #prva tri reda se koriste za connGui i ComGui
+        self.totalframes = 0 #prati broj frame-ova koje imamo
+
+
+        self.figs = [] #data
+
+    def AddChannelMaster(self): #ova funkcija će stvarat nove framove
+        self.AddMasterFrame()
+        self.AdjustRootFrame() #svaki put trebamo promijenit veličinu Root Frame-a
+
+
+    def AddMasterFrame(self):
+        self.frames.append(LabelFrame(self.root, text = f"Display Manager - {len(self.frames)+1}", padx = 5, pady = 5, bg = "white"))
+        self.totalframes = len(self.frames) - 1
+
+        if self.totalframes % 2 == 0:
+            self.framesCol = 0
+        else:
+            self.framesCol = 9 #zbroj columna od Conn i Com gui-a
+
+        self.framesRow = 4 + 4 * int(self.totalframes/2)
+        #Dodajemo novo addani frame (novi indeks = len(svih frameova))
+        self.frames[self.totalframes].grid(padx = 5, column = self.framesCol, row = self.framesRow, columnspan = 9, sticky = NW) 
+        #Sticky znači da će se nas widget(u ovom slučaju frame) "pokušat zalijepit" u NorthWest stranu
+
+
+
+    #povecanja/smanjivanje root-a kod dodavanja/micanja grafa
+    def AdjustRootFrame(self):
+        self.totalframes = len(self.frames) -1 
+
+        if self.totalframes > 0:
+            RootW = 800*2  #Širina Root-a
+
+        else:
+            RootW = 800
+
+
+        if self.totalframes+1 == 0:
+            RootH = 120
+
+        else:
+            RootH = 120 + 400 * (int(self.totalframes/2) +1)
+        self.root.geometry(f"{RootW}x{RootH}")
+        
+
+    def AddGraph(self):
+        self.figs.append([])
+        #figs je lista lista
+        #na novi graf čemo appendat listu koja sdrži podatke za taj određeni graf
+        # figs[i] =  [ figure (graf) ] lista na mjestu i
+        self.figs[self.totalframes].append(plt.figure(figsize = (7,5), dpi = 80))
+
+        # na mjestu 0 u fig[i] listi dodajemo subplot
+        self.figs[self.totalframes].append(self.figs[self.totalframes][0].add_subplot(111))
+
+        self.figs[self.totalframes].append(FigureCanvasAgg(self.figs[self.totalframes][0], master = self.frames[self.totalframes]))
+
+        #dodajemo ga u grid
+        self.figs[self.totalframes][2].get_tk_widget().grid(column = 1, row = 0, columnspan = 17, sticky = N)
+
 if __name__ == "__main__":
     RootGUI() #Ova sintaksa govori ubiti da će se Prozor otvoriti samo u main, a ne svaki put kada importamo file bilo gdje drugdje
     ComGui()
     ConnGUI()
+    DisGUI()
