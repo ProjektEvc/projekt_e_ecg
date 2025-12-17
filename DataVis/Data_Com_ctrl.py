@@ -14,6 +14,10 @@ class DataMaster():
         self.XData = []
         self.YData = []
 
+
+        self.FunctionMaster = ["RowData", "Voltage Display"]
+
+
     def DecodeMsg(self):
         temp = self.RowMsg.decode('utf8') #podatak koji primimo na COM port trebamo dekodirat sa pythonovom funkcijom sa utf8 standrdom
         if len(temp) > 0:

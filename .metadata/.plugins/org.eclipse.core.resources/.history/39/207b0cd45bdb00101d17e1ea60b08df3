@@ -31,6 +31,13 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define ECG_LEN 250
+
+
+#define BLOCK_SAMPLES 32 //radimo blokovski DMA prijenos, svaki blok će imati 32 uzorka ECG signala
+#define BYTES_PER_SAMPLE 2 //svaki uzorak zauzima 2 bajta (STM32F429 familija ima 12 bitni ADC [0,4096])
+#define TX_BLOCK_SIZE (BLOCK_SAMPLES * BYTES_PER_SAMPLE) //ovo je ujedno i DMA buffer size
+/* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
@@ -42,6 +49,11 @@ UART_HandleTypeDef huart5;
 DMA_HandleTypeDef hdma_uart5_tx;
 
 /* USER CODE BEGIN PV */
+
+char transmit_buffer[TX_BLOCK_SIZE]; //string veličine 64 byte-a koji šaljemo
+char recieve_buffer[TX_BLOCK_SIZE]; //trenutačno ne korisitmo
+uint8_t dma_buffer[TX_BLOCK_SIZE]; //više manje identično što i char, no DMA ne zna što je character, DMA zna samo što je byte  (uint8_t)
+
 
 uint8_t rx_byte;
 char rx_buffer[32];
@@ -66,6 +78,54 @@ ECG_Packet_t myPacket;
 
 volatile uint8_t transfer_complete = 1; // Zastavica sa kojom ćemo gledat je li UART transfer  gotovo i mozemo li opet preći na SPI
 
+
+
+
+const uint16_t ecg_mock[ECG_LEN] = {
+    // baseline
+    2048,2048,2048,2048,2049,2050,2051,2050,2049,2048,
+
+    // P wave (small bump)
+    2050,2053,2058,2065,2070,2075,2070,2065,2058,2053,2050,
+
+    // PR segment
+    2049,2048,2048,2048,2048,2048,
+
+    // Q dip
+    2035,2020,2000,
+
+    // R peak
+    2300,2800,3500,4095,3600,3000,2500,
+
+    // S dip
+    2100,2000,1980,
+
+    // ST segment
+    2048,2050,2052,2054,2056,2054,2052,2050,2048,
+
+    // T wave
+    2060,2080,2100,2130,2160,2180,2200,
+    2180,2160,2130,2100,2080,2060,
+
+    // return to baseline
+    2050,2048,2048,2048,2048,2048,2048,
+
+    // rest (diastole)
+    2048,2048,2048,2048,2048,2048,2048,2048,2048,2048,
+    2048,2048,2048,2048,2048,2048,2048,2048,2048,2048,
+    2048,2048,2048,2048,2048,2048,2048,2048,2048,2048,
+    2048,2048,2048,2048,2048,2048,2048,2048,2048,2048,
+
+    // lagani šum (realističnije)
+    2049,2047,2048,2049,2048,2047,2048,2049,2048,2047,
+    2048,2049,2048,2047,2048,2049,2048,2047,
+
+    // još malo baseline da dođe do ~250
+    2048,2048,2048,2048,2048,2048,2048,2048,2048,2048,
+    2048,2048,2048,2048,2048,2048,2048,2048,2048,2048,
+    2048,2048,2048,2048,2048,2048,2048,2048,2048,2048,
+    2048,2048,2048,2048,2048,2048,2048,2048,2048,2048,
+};
 
 
 /* USER CODE END PV */
@@ -139,8 +199,16 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
   //myPacket.ecg_raw = MAX30003_Read_ECG();
-  //myPacket.timestamp = HAL_GetTick();   --nemamo systick timer implementiran
+  //myPacket.timestamp = HAL_GetTick();
 
+
+  if (transfer_complete)
+	   {
+	      transfer_complete = 0; // Lock
+	      HAL_UART_Transmit_DMA(&huart2, (uint8_t*)&myPacket, sizeof(myPacket));
+	   }
+
+  HAL_Delay(5); // Vrijeme u ms, treba prilagodit vremenu otipkavanja (najvjeroajtnije oko 150 - 250 hz)
 
 
   //Nemamo potrebe pisati bilo kakav kod za DMA, pri ulasku u main HAL_UART_Transmit_DMA() gleda lokaciju podataka i ako ima podataka DMA šalje podatke bez obzira na to
@@ -508,8 +576,36 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void fill_tx_block(void)
+{
+    static uint16_t ecg_idx = 0;
+
+    for (int i = 0; i < BLOCK_SAMPLES; i++)
+    {
+        uint16_t s = ecg_mock[ecg_idx++];
+
+        if (ecg_idx >= ECG_LEN)
+            ecg_idx = 0;
+
+        dma_buffer[2*i]     = s & 0xFF; //LSB
+        dma_buffer[2*i + 1] = s >> 8;   //MSB
+        //DMA = [LSB,MSB,  LSB,MSG,   LSB,MSB],...
+    }
+}
 
 
+void send_block_dma(void)
+{
+    fill_tx_block();
+   // HAL_UART_Transmit_DMA(&huart5, dma_buffer, TX_BLOCK_SIZE);
+    //&huart5 je pokazivac na određenu uart periferiju
+    //dma_buffer pokazivac na podatke, "pokazivac gleda na prvi bajt u arrayu dma_buffer, pa ne treba &dma_buffer"
+    //TX_BLOCK_SIZE broj bajtova koji će DMA poslat UARTU,
+    //bitno da za razumijet da DMA u prijenosu između blokova ostavi procesoru "vremena" da radi ostale stvari
+    //kada bi koristili samo HAL_UART_Transmit() tada procesor nebi mogao radit ništa između slanja podataka
+    //po završetku prijenosa jednog bloka DMA aktivira funkciju HAL_UART_TxCpltCallback() iz koje možemo pokrenunt novo slanje podataka
+
+}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 //Nakon što se triggera interrupt na rx, ova se funkcija automatski poziva
@@ -517,7 +613,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == UART5)
     {
-        if (rx_byte == '\n')   // kraj poruke, poruke koje šaljemo iz pythonu moraju zavrsavat na '\n'
+        if (rx_byte == '\n')   // kraj poruke
         {
             rx_buffer[rx_index] = '\0';
             rx_index = 0;
@@ -552,21 +648,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 void start_streaming(void)
-/*
-U pythonu kliknemo na gumb stream, nakon toga poašlje se znak "#A#" i dolazimo u ovaj potprogram
-Mi cemo sa DMA poslat prvi "probni paket", nakon tog će se aktivirat HAL_UART_TxCpltCallback(),
-
-
- */
 {
     if (!streaming)
     {
         streaming = 1;
-        myPacket.header = 0xAA;
-        myPacket.ecg_raw = 0x0;
-        myPacket.timestamp = 0;
-        myPacket.footer = 0x55;
-        HAL_UART_Transmit_DMA(&huart5,(uint8_t*)&myPacket , sizeof(myPacket));
+        HAL_UART_Transmit_DMA(&huart5, dma_buffer, TX_BLOCK_SIZE);
     }
 }
 
@@ -578,71 +664,22 @@ void stop_streaming(void)
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if(huart->Instance == UART5)
-	    {
-	        transfer_complete = 1;
+    if(huart->Instance == UART5)
+    {
+        send_block_dma(); // šalje sljedeći blok
 
-	        // Ako je streaming još uvijek aktivan, odmah pošalji sljedeći "osvježeni" paket
-	        if (streaming)
-	        {
-	            // Ovdje možeš malo promijeniti podatke da vidiš promjenu u Pythonu
-	            myPacket.ecg_raw = 1234;
-	            myPacket.timestamp = 12; // Ako nemaš SysTick, koristi fiksni broj
 
-	            HAL_UART_Transmit_DMA(&huart5, (uint8_t*)&myPacket, sizeof(myPacket));
-	        }
+        //transfer_complete = 1 (Jedan paket je poslan k pythonu)
+    }
 
     //Mi cemo trebat kontrolirat frekvenciju prikpljanja podatka (delay u sljedecoj liniji nema smisla), trebamo delay samo da simuliramo podatke koje bi dobivali kod grafičkog sučelja
-    //HAL_Delay(125);
+    HAL_Delay(125);
     //Isto tako, kod prikupljanja podataka bitno je da ne šaljemo podatke sa DMA->UART čim ih dobijemo, tj. slat ćemo podatke tek kad skupimo cijeli blok informacija
     //Kada suspendamo program i dalje u python skirpti mozemo vidjet informacije (tu dolazi ona razlika "software" i "hardware"), DMA je nezavisni kontroler i UART je nazavisna periferija u odnosu
     //na procesor koji rad isključivo kad nije suspendan, ono što je pisalo u memoriji i dalje piše u memoriji, te se dalje šalje u python skriptu preko COM porta
-	    }
-
 }
 
 
-
-
-//Sljedece stvari nemamo implementirane
-
-
-/*
- // Ova funkcija se poziva svaki put kad MAX30003 kaže "imam podatak"
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    if (GPIO_Pin == MAX30003_INT_PIN)
-    {
-        // 1. Pročitaj podatak preko SPI-ja
-        // Najbolje je koristiti DMA da ne trošimo CPU vrijeme
-        // Ovdje šaljemo adresu registra, a primamo 3 bajta podataka
-        HAL_SPI_TransmitReceive_DMA(&hspi1, spi_tx_buf, spi_rx_buf, 3);
-    }
-}
-
-// Kada SPI završi čitanje podataka iz senzora
-void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
-{
-    if (hspi->Instance == SPI1)
-    {
-        // 2. Obradi sirove bajtove u ECG podatak
-        myPacket.ecg_raw = parse_max30003_data(spi_rx_buf);
-        myPacket.timestamp = HAL_GetTick();
-
-        // 3. Pošalji gotov paket u Python preko UART DMA
-        if (streaming && transfer_complete)
-        {
-            transfer_complete = 0;
-            HAL_UART_Transmit_DMA(&huart5, (uint8_t*)&myPacket, sizeof(myPacket));
-        }
-    }
-}
- */
-
-
-
-
-/*
 uint32_t MAX30003_Read_ECG(void) {
     uint8_t spi_buf[3];
     uint32_t raw_value = 0;
@@ -662,40 +699,6 @@ uint32_t MAX30003_Read_ECG(void) {
     raw_value = (spi_buf[0] << 16) | (spi_buf[1] << 8) | spi_buf[2];
     return raw_value;
 }
-
-
-
-
-void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-    if (hspi->Instance == SPI1) {
-
-        // Prepare our packed struct with the new data
-        myPacket.header = 0xAA;
-        myPacket.timestamp = HAL_GetTick();
-        myPacket.status = 0x01; // Logic to check if leads are on
-        myPacket.footer = 0x55;
-
-        // Process the 3 SPI bytes into our 32-bit ecg_raw field
-        // (Assuming you globalized 'spi_raw' or use the struct directly)
-        // myPacket.ecg_raw = (spi_raw[0] << 16) | (spi_raw[1] << 8) | spi_raw[2];
-
-        // 3. Send the packed struct to Python via UART DMA
-        if (transfer_complete) {
-            transfer_complete = 0; // Lock
-            HAL_UART_Transmit_DMA(&huart2, (uint8_t*)&myPacket, sizeof(myPacket));
-        }
-    }
-}
-
-
-
-*/
-
-
-
-
-
-
 
 /* USER CODE END 4 */
 

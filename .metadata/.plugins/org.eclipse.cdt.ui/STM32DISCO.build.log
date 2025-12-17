@@ -1,28 +1,10 @@
-20:39:04 **** Incremental Build of configuration Debug for project STM32DISCO ****
+20:35:03 **** Incremental Build of configuration Debug for project STM32DISCO ****
 make -j4 all 
-arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F429xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
-../Core/Src/main.c:62:10: warning: type defaults to 'int' in declaration of 'streaming' [-Wimplicit-int]
-   62 | volatile streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
-      |          ^~~~~~~~~
-../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
-../Core/Src/main.c:584:17: warning: implicit declaration of function 'strcmp' [-Wimplicit-function-declaration]
-  584 |             if (strcmp(rx_buffer, "#?#") == 0)
-      |                 ^~~~~~
-../Core/Src/main.c:21:1: note: include '<string.h>' or provide a declaration of 'strcmp'
-   20 | #include "main.h"
-  +++ |+#include <string.h>
-   21 | 
-arm-none-eabi-gcc -o "STM32DISCO.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\STM32DISCO\STM32F429ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32DISCO.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
-Finished building target: STM32DISCO.elf
- 
 arm-none-eabi-size  STM32DISCO.elf 
-arm-none-eabi-objdump -h -S STM32DISCO.elf  > "STM32DISCO.list"
    text	   data	    bss	    dec	    hex	filename
-  16132	     12	   1852	  17996	   464c	STM32DISCO.elf
+  15576	     16	   1792	  17384	   43e8	STM32DISCO.elf
 Finished building: default.size.stdout
  
-Finished building: STM32DISCO.list
- 
 
-20:39:08 Build Finished. 0 errors, 2 warnings. (took 3s.339ms)
+20:35:04 Build Finished. 0 errors, 0 warnings. (took 407ms)
 

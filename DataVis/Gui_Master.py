@@ -5,7 +5,9 @@ import threading
 
 #treba pip install matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.backends.backend_tkagg as FigureCanvasAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+from functools import partial
 
 
 class RootGUI:
@@ -206,17 +208,45 @@ class ConnGUI():
         self.root.geometry("360x120")
 
     def start_stream(self):
-        pass
+        self.btn_start_stream["state"] = "disabled"
+        self.btn_stop_stream["state"] = "active"
 
+        self.serial.t1 = threading.Thread(target = self.serial.SerialDataStream, args = (self,), daemon = True)
+        self.serial.t1.start()
 
     def stop_stream(self):
-        pass
+        self.btn_start_stream["state"] = "active"
+        self.btn_stop_stream["state"] = "disasbled"
+        self.serial.threading = False
+
+
 
     def new_chart(self):
         self.chartMaster.AddChannelMaster()
 
     def remove_chart(self):
-        pass
+        try: 
+            if len(self.chartMaster.frames) > 0:
+                totalFrame = len(self.chartMaster.frames) - 1
+                self.chartMaster.frames[totalFrame].destroy()
+                self.chartMaster.frames.pop() #zadnji element brisemo
+                self.chartMaster.figs.pop()
+                self.chartMaster.ControlFrames[totalFrame][0].destroy() #na nultoj lokaicji je 
+                self.chartMaster.ControlFrames.pop()
+
+                #na nultoj lokaciji u ChannelFrameu se nalazi LabelFrame za kanale i funkcije grafa
+                self.chartMaster.ChannelFrame[totalFrame][0].destroy()  
+
+                self.chartMaster.ChannelFrame.pop()
+                self.chartMaster.ViewVar.pop()
+                self.chartMaster.OptionVar.pop()
+                self.chartMaster.FunVar.pop()
+
+
+                self.chartMaster.AdjustRootFrame()
+        except:
+            pass
+
 
     def save_data(self):
         pass
@@ -238,10 +268,21 @@ class DisGUI():
 
         self.figs = [] #data
 
+
+        self.ControlFrames = [] #ovdje će se nalazit gumbovi i labelFrame za + - kod svakog grafa
+
+
+        self.ChannelFrame = [] # [[LabelFrame, index_Of_LabelFrame]   ]
+        self.ViewVar = []
+        self.OptionVar = []
+        self.FunVar = []
+
+
     def AddChannelMaster(self): #ova funkcija će stvarat nove framove
         self.AddMasterFrame()
         self.AdjustRootFrame() #svaki put trebamo promijenit veličinu Root Frame-a
-
+        self.AddGraph()
+        self.AddBtnFrame()
 
     def AddMasterFrame(self):
         self.frames.append(LabelFrame(self.root, text = f"Display Manager - {len(self.frames)+1}", padx = 5, pady = 5, bg = "white"))
@@ -288,10 +329,123 @@ class DisGUI():
         # na mjestu 0 u fig[i] listi dodajemo subplot
         self.figs[self.totalframes].append(self.figs[self.totalframes][0].add_subplot(111))
 
-        self.figs[self.totalframes].append(FigureCanvasAgg(self.figs[self.totalframes][0], master = self.frames[self.totalframes]))
+        self.figs[self.totalframes].append(FigureCanvasTkAgg(self.figs[self.totalframes][0], master = self.frames[self.totalframes]))
 
         #dodajemo ga u grid
-        self.figs[self.totalframes][2].get_tk_widget().grid(column = 1, row = 0, columnspan = 17, sticky = N)
+        #rowspan je toliki za dodavnje više kanala odjednom, a column span je tu jer dio će zauzimat graf, a dio zauzima frame od channel managera
+        self.figs[self.totalframes][2].get_tk_widget().grid(column = 1, row = 0, rowspan = 17, columnspan = 4, sticky = N)
+
+
+
+
+    def AddBtnFrame(self):
+
+
+
+        btnH = 2
+        btnW = 4
+
+        self.ControlFrames.append([])
+        #na nulto mjesto u listi dodajemo Frame za naše gumbove
+        self.ControlFrames[self.totalframes].append(LabelFrame(self.frames[self.totalframes], pady = 5, bg = "white"))
+        self.ControlFrames[self.totalframes][0].grid(column = 0, row = 0, padx = 5, pady = 5, sticky = N)
+        #Na mjestu self.totalframes se nalazi naš frame za gumb, na nultoj lokaciji se nalazi LabelFrame  (pravi objekt za taj frame), i njega smo stavili na grid
+        #u listu dodajemo gumb  List = [LabelFrame, gumb]
+        self.ControlFrames[self.totalframes].append(Button(self.ControlFrames[self.totalframes][0], text = "+", bg = "white", width = btnW, height = btnH, command = partial(self.AddChannel, self.ChannelFrame[self.totalframes])))
+        self.ControlFrames[self.totalframes][1].grid(column = 0, row = 0, padx = 5, pady = 5)
+
+        self.ControlFrames[self.totalframes].append(Button(self.ControlFrames[self.totalframes][0], text = "-", bg = "white", width = btnW, height = btnH, command = partial(self.DeleteChannel, self.ChannelFrame[self.totalframes])))
+        self.ControlFrames[self.totalframes][2].grid(column = 1, row = 0, padx = 5, pady = 5)
+
+        #sad nam contorlFrames lista sadri [LabelFrame, gumb (+), gumb (-)]
+
+
+        #koristimo partial.function(args) jer sa "normalnom sintaksom", command = self.function, nebi mogli posalti argumente
+
+    def AddChannelFrame(self):
+        self.ChannelFrame.append([])
+        self.ViewVar.append([])
+        self.OptionVar.append([])
+        self.FunVar.append([])
+
+        #ChannelFrame = [[LabelFrame1, index1], [labelFrame2, index2],...]
+        self.ChannelFrame[self.totalframes].append(LabelFrame(self.frames[self.totalframes], pady = 5, bg = "white"))
+        self.ChannelFrame[self.totalframes].append(self.totalframes)
+        #moramo dodati novi Frame na grid
+        #prvi row obuhvaća gumbove + i -, ostalih 16 mjesta odlazi na ovaj frame
+        self.ChannelFrame[self.totalframes][0].grid(column = 0, row = 1, padx = 5, pady = 5, rowspan = 16, sticky = N)
+
+        self.AddChannel(self.ChannelFrame[self.totalframes]) #ova funkcija će stvarat male framove na mjesti za svaki kanal
+
+
+    def AddChannel(self, ChannelFrame):
+
+        #winfo_children gleda koliko widgeta sadrži naš LabelFrame 
+        if len(ChannelFrame[0].winfo_children()) < 8:
+            NewFrameChannel = LabelFrame(ChannelFrame[0], bg = "white") #LabelFrame(root, args..)
+
+
+        #Ako zamislimo da smo imali npr. 3 frame-a za kanale i gore smo kreirali novi NewFrameChannel tada će .winfo_children izbaciti van 4
+        #A mi zelimo stavit okvir na mjesto 3
+        NewFrameChannel.grid(column = 0, row = len(ChannelFrame[0].winfo_children()) - 1)
+
+
+        #ChannelFrame = [[LabelFrame za kanal maanger 1, index1],.. ]
+        self.ViewVar[ChannelFrame[1]].append(IntVar())
+        
+        #Ovaj gumb će omoguciti ili nece omoguciti da vidimo graf tog kanala
+        #ViewVar = [[ch1, ch2, ch3,.....],[],[]],....]
+        Ch_btn = Checkbutton(NewFrameChannel, variable=self.ViewVar[ChannelFrame[1]][len(self.ViewVar[ChannelFrame[1]])-1],onvalue=1, offvalue=0, bg="white")
+        Ch_btn.grid(row = 0, column = 0, padx = 1) #za svaki checkbox radimo novi frame pa ovdje nije potrebno dirat column  i row 
+        self.ChannelOption(NewFrameChannel, ChannelFrame[1])
+        self.ChannelFunc(NewFrameChannel, ChannelFrame[1])
+
+
+
+
+    #frame je mali okvir stvoren u funkciji AddChannel (NewFrameChannel), ChannelFrameNumber je samo ChannelFrame[1] da znam na koji se graf fokusiramo
+
+    def ChannelOption(self, frame, ChannelFrameNumber):
+        
+        #ova varijabla će pamtiti što je korisnik odabrao u dropdownu
+        self.OptionVar[ChannelFrameNumber].append(StringVar())
+
+        bds = self.data.Channels #Nama ce ovo bit jedan za sad jer imamo jedan kanal i u sinkronizaciji stm32 nije navedeno nista u vezi broja kanala
+
+        #ova linija pronalazi malo prije postavljeni StringVar i na njegovo pocetnto mjesto stavlja prvi dostupni kanal
+        self.OptionVar[ChannelFrameNumber][len(self.OptionVar[ChannelFrameNumber]) - 1].set(bds[0])
+
+        drop_ch = OptionMenu(frame, self.OptionVar[ChannelFrameNumber][len(self.OptionVar[ChannelFrameNumber]) - 1], *bds)
+        drop_ch.config(width = 5)
+        drop_ch.grid(row = 0, column = 1, padx = 1)
+
+    
+    #Gotovo pa ista funkcio kao i ChannelOption() samo što ovdje odabiremo funkcije a ne kanale
+    def ChannelFunc(self, frame, ChannelFrameNumber):
+        
+        #ova varijabla će pamtiti što je korisnik odabrao u dropdownu
+        self.FunVar[ChannelFrameNumber].append(StringVar())
+
+        bds = self.data.FunctionMaster #Nama ce ovo bit jedan za sad jer imamo jedan kanal i u sinkronizaciji stm32 nije navedeno nista u vezi broja kanala
+
+        #ova linija pronalazi malo prije postavljeni StringVar i na njegovo pocetnto mjesto stavlja prvi dostupni kanal
+        self.FunVar[ChannelFrameNumber][len(self.OptionVar[ChannelFrameNumber]) - 1].set(bds[0])
+
+        drop_ch = OptionMenu(frame, self.FunVar[ChannelFrameNumber][len(self.FunVar[ChannelFrameNumber]) - 1], *bds)
+        drop_ch.config(width = 5)
+        drop_ch.grid(row = 0, column = 2, padx = 1)
+
+
+    #Ova funkcija će micat male kanale za pojedine grafove
+    def DeleteChannel(self, ChannelFrame):
+        if len(ChannelFrame[0].winfo_children()) > 1: #ako imamo više od jednog kanala, uvijek bi tjeli iamti barem jedan kanal
+            ChannelFrame[0].winfo_children()[len(ChannelFrame[0]) - 1].destroy()
+            #moramo se sjetit da winfo_children šalje widget vezan uz neki frame
+
+            self.ViewVar[ChannelFrame[1]].pop()
+            self.FunVar[ChannelFrame[1]].pop()
+            self.OptionVar[ChannelFrame[1]].pop()
+
 
 if __name__ == "__main__":
     RootGUI() #Ova sintaksa govori ubiti da će se Prozor otvoriti samo u main, a ne svaki put kada importamo file bilo gdje drugdje

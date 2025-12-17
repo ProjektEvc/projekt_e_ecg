@@ -1,5 +1,6 @@
 import serial.tools.list_ports
 import time 
+import struct
 
 class SerialControl():
     def __init__(self):
@@ -102,6 +103,41 @@ class SerialControl():
                 time.sleep(0.5) #neki delay da vidimo crvenu obju
                 if(self.threading == False):
                     break
+
+
+    def SerialDataStream(self,gui):
+        self.threading = True
+        packet_size = 10 # 1 (header) + 4 (ecg) + 4 (timestamp) + 1 (footer)
+    
+        while self.threading:
+            try:
+                # Šaljemo znak za početak
+                self.ser.write(gui.data.StartStream.encode())
+            
+            # Čitamo točno onoliko bajtova koliko je duga struktura na STM32
+                raw_data = self.ser.read(packet_size)
+            
+                if len(raw_data) == packet_size:
+                    # 'B' = unsigned char (1 byte)
+                    # 'I' = unsigned int (4 bytes)
+                    # < = little endian (kako STM32 sprema podatke)
+                    unpacked = struct.unpack('<BI I B', raw_data)
+                
+                    header = unpacked[0]
+                    ecg = unpacked[1]
+                    timestamp = unpacked[2]
+                    footer = unpacked[3]
+                
+                    if header == 0xAA and footer == 0x55:
+                        print(f"ECG: {ecg}, Time: {timestamp}")
+                        # Ovdje dodaj podatke u gui.data.YData za crtanje
+                    else:
+                        print("Pogrešan paket (Header/Footer mismatch)")
+            
+            except Exception as e:
+                print(f"Greška u streamu: {e}")
+
+
 
 if __name__ == "__main__":
     SerialControl()
