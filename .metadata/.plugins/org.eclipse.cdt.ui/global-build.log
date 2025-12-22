@@ -173,3 +173,17 @@ arm-none-eabi-size  projekt_e_nucleuo.elf
   22328	     16	   2256	  24600	   6018	projekt_e_nucleuo.elf
 Finished building: default.size.stdout
  
+15:37:00 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+   text	   data	    bss	    dec	    hex	filename
+  22328	     16	   2256	  24600	   6018	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+15:39:43 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+   text	   data	    bss	    dec	    hex	filename
+  22328	     16	   2256	  24600	   6018	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 

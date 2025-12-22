@@ -10,6 +10,7 @@ class DataMaster():
         self.StopStream = "#S#\n" #završetak streama
         self.SynchChannel = 0 #broj kanala koji dobivamo sa mikrokontrolera, necemo koristit za sad
         self.msg = [] 
+        self.prevECGdata = 0
 
 
         #liste sa kojima ćemo crtat grafove, imat će podatke i vrijeme
@@ -67,6 +68,11 @@ class DataMaster():
             ecg_raw = struct.unpack('<I', self.RowMsg[1:5])[0]       # little-endian uint32
             timestamp = struct.unpack('<I', self.RowMsg[5:9])[0]     # little-endian uint32
             footer = self.RowMsg[9]
+            if(ecg_raw > 4096):
+                ecg_raw = self.prevECGdata
+            else:
+                self.prevECGdata = ecg_raw
+            
             self.msg = [ecg_raw, timestamp]
             #print(self.RowMsg)
             #print(self.msg)

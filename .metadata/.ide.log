@@ -237,3 +237,9 @@
 2025-12-22 11:31:56,559 [INFO] WebApp:191 - Connection restablished
 2025-12-22 11:31:59,018 [INFO] WebApp:194 - Connection lost
 2025-12-22 11:31:59,300 [INFO] WebApp:191 - Connection restablished
+2025-12-22 11:39:40,936 [INFO] WebApp:194 - Connection lost
+2025-12-22 11:55:54,210 [INFO] WebApp:403 - JxBrowser engine has been closed 
+2025-12-22 15:10:29,234 [ERROR] ConfigurationRetriever:142 - IOException on connection: Connect timed out
+2025-12-22 15:33:49,981 [ERROR] ConfigurationRetriever:142 - IOException on connection: sw-center.st.com
+2025-12-22 15:33:49,982 [ERROR] ConfigurationRetriever:142 - IOException on connection: sw-center.st.com
+2025-12-22 15:33:49,982 [ERROR] ConfigurationRetriever:142 - IOException on connection: sw-center.st.com

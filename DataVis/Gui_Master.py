@@ -476,7 +476,7 @@ class DisGUI():
     #Ova funkcija će micat male kanale za pojedine grafove
     def DeleteChannel(self, ChannelFrame):
         if len(ChannelFrame[0].winfo_children()) > 1: #ako imamo više od jednog kanala, uvijek bi tjeli iamti barem jedan kanal
-            ChannelFrame[0].winfo_children()[len(ChannelFrame[0]) - 1].destroy()
+            ChannelFrame[0].winfo_children()[len(ChannelFrame[0].winfo_children()) - 1].destroy()
             #moramo se sjetit da winfo_children šalje widget vezan uz neki frame
 
             self.ViewVar[ChannelFrame[1]].pop()
