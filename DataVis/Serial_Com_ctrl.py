@@ -108,32 +108,49 @@ class SerialControl():
     def SerialDataStream(self,gui):
         self.threading = True
         packet_size = 10 # 1 (header) + 4 (ecg) + 4 (timestamp) + 1 (footer)
-    
+        self.ser.reset_input_buffer()
         while self.threading:
             try:
                 # Šaljemo znak za početak
                 self.ser.write(gui.data.StartStream.encode())
-            
+                cnt = 0
+                gui.data.SetRefTime()
             # Čitamo točno onoliko bajtova koliko je duga struktura na STM32
-                raw_data = self.ser.read(packet_size)
+                if self.ser.in_waiting >= 10:
+                    if self.ser.read(1) == b'\xaa':
+
+                        rem = self.ser.read(9)
             
-                if len(raw_data) == packet_size:
-                    # 'B' = unsigned char (1 byte)
-                    # 'I' = unsigned int (4 bytes)
-                    # < = little endian (kako STM32 sprema podatke)
-                    unpacked = struct.unpack('<BI I B', raw_data)
-                
-                    header = unpacked[0]
-                    ecg = unpacked[1]
-                    timestamp = unpacked[2]
-                    footer = unpacked[3]
-                
-                    if header == 0xAA and footer == 0x55:
-                        print(f"ECG: {ecg}, Time: {timestamp}")
-                        # Ovdje dodaj podatke u gui.data.YData za crtanje
-                    else:
-                        print("Pogrešan paket (Header/Footer mismatch)")
+                        if len(rem) == 9:
+                            gui.data.RowMsg = b'\xaa' + rem
+                            gui.data.DecodePacket(self.ser)
+                            # Start referentno vrijeme
+                           # gui.data.SetRefTime()
+                            break
             
+            except Exception as e:
+                print(f"Greška u streamu, kod ref_time: {e}")
+            
+        while self.threading:
+            try:
+            # Čitamo točno onoliko bajtova koliko je duga struktura na STM32
+                if self.ser.in_waiting >= 10:
+                    if self.ser.read(1) == b'\xaa':
+
+                        rem = self.ser.read(9)
+            
+                        if len(rem) == 9:
+                            gui.data.RowMsg = b'\xaa' + rem
+                            gui.data.DecodePacket(self.ser)
+                            # Update Xdata
+                            gui.data.UpdateXdata()
+                            # Update Ydata
+                            gui.data.UpdateYdata()
+                            Ysam = [Ys[len(gui.data.XData)-1] for Ys in gui.data.YData]
+                            print(f"X: {gui.data.XData[len(gui.data.XData)-1]}, Y: {Ysam}")
+                            gui.data.AdjustData() #sluzi da poravnamo X os
+                            print(f"X Len: {len(gui.data.XData)}, Xstart:{gui.data.XData[0]}  Xend : {gui.data.XData[len(gui.data.XData)-1]}, Xrange: {gui.data.XData[len(gui.data.XData)-1] - gui.data.XData[0]} Ydata len: {len(gui.data.YData[0])} Yval: : {Ysam} ")
+                            
             except Exception as e:
                 print(f"Greška u streamu: {e}")
 
