@@ -130,7 +130,8 @@ class SerialControl():
             
             except Exception as e:
                 print(f"Greška u streamu, kod ref_time: {e}")
-            
+
+        gui.UpdateChart()    
         while self.threading:
             try:
             # Čitamo točno onoliko bajtova koliko je duga struktura na STM32
@@ -146,10 +147,10 @@ class SerialControl():
                             gui.data.UpdateXdata()
                             # Update Ydata
                             gui.data.UpdateYdata()
-                            Ysam = [Ys[len(gui.data.XData)-1] for Ys in gui.data.YData]
-                            print(f"X: {gui.data.XData[len(gui.data.XData)-1]}, Y: {Ysam}")
+                          #  Ysam = [Ys[len(gui.data.XData)-1] for Ys in gui.data.YData]
+                          #  print(f"X: {gui.data.XData[len(gui.data.XData)-1]}, Y: {Ysam}")
                             gui.data.AdjustData() #sluzi da poravnamo X os
-                            print(f"X Len: {len(gui.data.XData)}, Xstart:{gui.data.XData[0]}  Xend : {gui.data.XData[len(gui.data.XData)-1]}, Xrange: {gui.data.XData[len(gui.data.XData)-1] - gui.data.XData[0]} Ydata len: {len(gui.data.YData[0])} Yval: : {Ysam} ")
+                           # print(f"X Len: {len(gui.data.XData)}, Xstart:{gui.data.XData[0]}  Xend : {gui.data.XData[len(gui.data.XData)-1]}, Xrange: {gui.data.XData[len(gui.data.XData)-1] - gui.data.XData[0]} Ydata len: {len(gui.data.YData[0])} Yval: : {Ysam} ")
                             
             except Exception as e:
                 print(f"Greška u streamu: {e}")

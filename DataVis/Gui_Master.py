@@ -4,6 +4,8 @@ import threading
 
 
 #treba pip install matplotlib
+import matplotlib
+matplotlib.use('TkAgg') # Or 'Agg' to ensure no windows pop up
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -214,6 +216,40 @@ class ConnGUI():
         self.serial.t1 = threading.Thread(target = self.serial.SerialDataStream, args = (self,), daemon = True)
         self.serial.t1.start()
 
+
+
+
+    def UpdateChart(self):
+        try:
+            #myDisplayChannels = []
+            for MyChannelOpt in range(len(self.chartMaster.ViewVar)):
+                #prolazimo koz sve ViewVar-ove koje imamo i gledamo što je označeno na njima
+                self.chartMaster.figs[MyChannelOpt][1].clear()
+                for cnt, state in enumerate(self.chartMaster.ViewVar[MyChannelOpt]):
+                    if state.get(): #ako je checkmark označen
+                        MyChannel = self.chartMaster.OptionVar[MyChannelOpt][cnt].get()
+                        #myDisplayChannels.append(MyChannel)
+                        ChannelIndex = self.data.ChannelNum[MyChannel] #channelNum je dictionary
+                        FuncName = self.chartMaster.FunVar[MyChannelOpt][cnt].get() 
+                        
+                        self.chart = self.chartMaster.figs[MyChannelOpt][1]
+                        self.color = self.data.ChannelColor[MyChannel] #channelColor je dioctionary
+                        self.y = self.data.YDisplay[ChannelIndex]
+                        self.x = self.data.XDisplay
+                        self.data.FunctionMaster[FuncName](self) #pozivamo funkciju
+
+                self.chartMaster.figs[MyChannelOpt][1].grid(color = 'blue', linestyle = '-', linewidth = 0.2)
+                self.chartMaster.figs[MyChannelOpt][0].canvas.draw()
+            #print(myDisplayChannels)
+        except Exception as e:
+            print(f"Error in the UpdateChart: {e}")
+        
+        if self.serial.threading:
+            self.root.after(40,self.UpdateChart) #ovo je funkcija od Tkinter-a, koja piziva sam sama sebe svakih 40ms
+
+
+
+
     def stop_stream(self):
         self.btn_start_stream["state"] = "active"
         self.btn_stop_stream["state"] = "disasbled"
@@ -282,6 +318,7 @@ class DisGUI():
         self.AddMasterFrame()
         self.AdjustRootFrame() #svaki put trebamo promijenit veličinu Root Frame-a
         self.AddGraph()
+        self.AddChannelFrame()
         self.AddBtnFrame()
 
     def AddMasterFrame(self):
@@ -426,7 +463,7 @@ class DisGUI():
         #ova varijabla će pamtiti što je korisnik odabrao u dropdownu
         self.FunVar[ChannelFrameNumber].append(StringVar())
 
-        bds = self.data.FunctionMaster #Nama ce ovo bit jedan za sad jer imamo jedan kanal i u sinkronizaciji stm32 nije navedeno nista u vezi broja kanala
+        bds = [func for func in self.data.FunctionMaster.keys()] #Nama ce ovo bit jedan za sad jer imamo jedan kanal i u sinkronizaciji stm32 nije navedeno nista u vezi broja kanala
 
         #ova linija pronalazi malo prije postavljeni StringVar i na njegovo pocetnto mjesto stavlja prvi dostupni kanal
         self.FunVar[ChannelFrameNumber][len(self.OptionVar[ChannelFrameNumber]) - 1].set(bds[0])

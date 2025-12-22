@@ -19,7 +19,34 @@ class DataMaster():
         self.DisplayTimeRange = 5 #5 sekundi je XData dugačak
 
 
-        self.FunctionMaster = ["RowData", "Voltage Display"]
+        self.FunctionMaster = {
+            "RowData" : self.RowData , 
+            "Voltage Display" : self.VoltageData #ovo dvoje su funkcije
+            }
+
+
+        self.ChannelNum = {
+            'Ch0' : 0,
+            'Ch1' : 1,
+            'Ch2' : 2,
+            'Ch3' : 3,
+            'Ch4' : 4,
+            'Ch5' : 5,
+            'Ch6' : 6,
+            'Ch7' : 7
+        }
+
+
+        self.ChannelColor = {
+            'Ch0' : 'blue',
+            'Ch1' : 'green',
+            'Ch2' : 'red',
+            'Ch3' : 'cyan',
+            'Ch4' : 'magenta',
+            'Ch5' : 'yellow',
+            'Ch6' : 'black',
+            'Ch7' : 'white'
+        }
 
 
     def DecodeMsg(self):
@@ -41,8 +68,8 @@ class DataMaster():
             timestamp = struct.unpack('<I', self.RowMsg[5:9])[0]     # little-endian uint32
             footer = self.RowMsg[9]
             self.msg = [ecg_raw, timestamp]
-            print(self.RowMsg)
-            print(self.msg)
+            #print(self.RowMsg)
+            #print(self.msg)
 
         except struct.error as e:
                 print(f"Unpack error: {e}")
@@ -114,3 +141,11 @@ class DataMaster():
         x = np.array(self.XData)
         self.XDisplay = np.linspace(x.min(), x.max(), len(x), endpoint = 0)
         self.YDisplay = np.array(self.YData)
+
+
+    def RowData(self,gui):
+        gui.chart.plot(gui.x, gui.y, color = gui.color,  dash_capstyle = 'projecting', linewidth = 1)
+
+
+    def VoltageData(self,gui):
+        gui.chart.plot(gui.x, (gui.y / 4096) * 3.3, color = gui.color,  dash_capstyle = 'projecting', linewidth = 1)
