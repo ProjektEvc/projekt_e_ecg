@@ -13,11 +13,36 @@ from functools import partial
 
 
 class RootGUI:
-    def __init__(self):
+    def __init__(self, serial, data):
         self.root = Tk(); #inicijalizacija glavnog root "Frame-a"
         self.root.title("Serijska Komunikacija")
         self.root.geometry("360x120")
         self.root.config(bg = "white") #background color
+        self.serial = serial
+        self.data = data
+        self.root.protocol("WM_DELETE_WINDOW", self.close_window)
+
+    def close_window(self):
+        print("Gasim komunikaciju i zatvaram prozor...")
+        
+        self.serial.threading = False
+        
+        # Pošalji STOP komandu MCU-u
+        try:
+            if self.serial.ser.is_open:
+                self.serial.ser.write(self.data.StopStream.encode())
+        except:
+            pass
+        
+        #Zatvori serijski port
+        try:
+            self.serial.SerialClose(self)
+        except:
+            pass
+            
+        #Na samom kraju ugasi GUI
+        self.root.destroy()
+
 
 
 #svaki od def BaudOptionMenu, ComOptionMenu,.... prvo trebaju napraviti objekte, a tek onda ih trebamo publish-at
@@ -120,10 +145,18 @@ class ComGui():  #Klasa za komunikaciju sa uC
         else:
             self.serial.threading = False 
 
+            try:
+                while len(self.conn.chartMaster.frames) > 0:
+                    self.conn.kill_chart()
+            except Exception as e:
+                print(f"Failed while closing the connection {e}")
+
+           
+            self.serial.SerialClose(self)
             self.conn.ConnGUIClose()
             self.data.ClearData()
-            #start closing the connection
-            self.serial.SerialClose()
+
+
             InfoMsg = f"UART connection is now closed"
             messagebox.showwarning("showinfo", InfoMsg)
             self.btn_connect["text"] = "Connect"
@@ -245,15 +278,20 @@ class ConnGUI():
             print(f"Error in the UpdateChart: {e}")
         
         if self.serial.threading:
-            self.root.after(40,self.UpdateChart) #ovo je funkcija od Tkinter-a, koja piziva sam sama sebe svakih 40ms
+            self.root.after(5,self.UpdateChart) #ovo je funkcija od Tkinter-a, koja piziva sam sama sebe svakih 40ms
 
 
 
 
     def stop_stream(self):
         self.btn_start_stream["state"] = "active"
-        self.btn_stop_stream["state"] = "disasbled"
+        self.btn_stop_stream["state"] = "disabled"
+        try:
+            self.serial.ser.write(self.data.StopStream.encode())
+        except Exception as e:
+            print(f"Greška pri slanju stop komande: {e}")
         self.serial.threading = False
+        
 
 
 

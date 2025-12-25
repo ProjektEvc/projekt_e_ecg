@@ -391,7 +391,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             }
             else if(strcmp(rx_buffer, "#D#") == 0)
             {
-
+            	HAL_
             }
         }
         else

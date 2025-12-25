@@ -43,7 +43,7 @@ class SerialControl():
             self.ser.status = False
 
 
-    def SerialClose(self):
+    def SerialClose(self, ComGUI):
         try:
             self.ser.is_open
             self.ser.close()
@@ -57,13 +57,14 @@ class SerialControl():
     def SerialSync(self, gui):
         self.threading = True
         cnt = 0
+        self.ser.reset_input_buffer()
         while(self.threading):
             try:
                 #nas mikrokontoler će primati sync = "#?#\n"
                 self.ser.write(gui.data.sync.encode())
                 gui.conn.sync_status["text"] = "..Sync.."
                 gui.conn.sync_status["fg" ] = "orange"
-                gui.data.RowMsg = self.ser.readline()
+                gui.data.RowMsg = self.ser.read(1) #čita jedan znak i traži !
 
                 gui.data.DecodeMsg() #it DataMaster klase korisitmo funkciju decodemsg
                
@@ -107,7 +108,7 @@ class SerialControl():
 
     def SerialDataStream(self,gui):
         self.threading = True
-        packet_size = 10 # 1 (header) + 4 (ecg) + 4 (timestamp) + 1 (footer)
+        packet_size = 6# 1 (header) + 4 (ecg) + 1 (footer)
         self.ser.reset_input_buffer()
         while self.threading:
             try:
@@ -116,12 +117,12 @@ class SerialControl():
                 cnt = 0
                 gui.data.SetRefTime()
             # Čitamo točno onoliko bajtova koliko je duga struktura na STM32
-                if self.ser.in_waiting >= 10:
+                if self.ser.in_waiting >= 6:
                     if self.ser.read(1) == b'\xaa':
 
-                        rem = self.ser.read(9)
+                        rem = self.ser.read(5)
             
-                        if len(rem) == 9:
+                        if len(rem) == 5:
                             gui.data.RowMsg = b'\xaa' + rem
                             gui.data.DecodePacket(self.ser)
                             # Start referentno vrijeme
@@ -135,12 +136,12 @@ class SerialControl():
         while self.threading:
             try:
             # Čitamo točno onoliko bajtova koliko je duga struktura na STM32
-                if self.ser.in_waiting >= 10:
+                if self.ser.in_waiting >= 6:
                     if self.ser.read(1) == b'\xaa':
 
-                        rem = self.ser.read(9)
+                        rem = self.ser.read(5)
             
-                        if len(rem) == 9:
+                        if len(rem) == 5:
                             gui.data.RowMsg = b'\xaa' + rem
                             gui.data.DecodePacket(self.ser)
                             # Update Xdata

@@ -5,7 +5,7 @@ from Data_Com_ctrl import DataMaster
 
 MySerial = SerialControl()
 MyData = DataMaster()
-RootMaster = RootGUI()
+RootMaster = RootGUI(MySerial, MyData)
 
 ComMaster = ComGui(RootMaster.root, MySerial, MyData)
 

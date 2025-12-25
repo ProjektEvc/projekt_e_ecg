@@ -389,10 +389,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 // STOP STREAM
                 stop_streaming();
             }
-            else if(strcmp(rx_buffer, "#D#") == 0)
-            {
-
-            }
         }
         else
         {
@@ -425,7 +421,6 @@ Mi cemo sa DMA poslat prvi "probni paket", nakon tog će se aktivirat HAL_UART_T
 
 void stop_streaming(void)
 {
-	transfer_complete = 0;
     streaming = 0;
     HAL_UART_AbortTransmit(&huart4);
 }

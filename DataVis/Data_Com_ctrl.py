@@ -8,6 +8,7 @@ class DataMaster():
         self.sync_ok = "!" #očekujemo ! ako je uc povezan
         self.StartStream = "#A#\n" #šaljemo za početak streama
         self.StopStream = "#S#\n" #završetak streama
+        self.Disconnect = "#D#\n"
         self.SynchChannel = 0 #broj kanala koji dobivamo sa mikrokontrolera, necemo koristit za sad
         self.msg = [] 
         self.prevECGdata = 0
@@ -51,10 +52,11 @@ class DataMaster():
 
 
     def DecodeMsg(self):
-        temp = self.RowMsg.decode('utf8') #podatak koji primimo na COM port trebamo dekodirat sa pythonovom funkcijom sa utf8 standrdom
+        temp = self.RowMsg #predhodno je self.RowMsg = read(1)
         if len(temp) > 0:
             print("Tu smo")
-            self.msg = temp.split(",")
+            print(f"temp je > {temp}")
+            self.msg = chr(temp[0])
             print(f"split msg: {self.msg}")
 
 
@@ -66,16 +68,15 @@ class DataMaster():
         try:
             header = self.RowMsg[0]
             ecg_raw = struct.unpack('<I', self.RowMsg[1:5])[0]       # little-endian uint32
-            timestamp = struct.unpack('<I', self.RowMsg[5:9])[0]     # little-endian uint32
-            footer = self.RowMsg[9]
+            footer = self.RowMsg[5]
             if(ecg_raw > 4096):
                 ecg_raw = self.prevECGdata
             else:
                 self.prevECGdata = ecg_raw
             
-            self.msg = [ecg_raw, timestamp]
-            #print(self.RowMsg)
-            #print(self.msg)
+            self.msg = [ecg_raw, 0]
+            print(f"SelfRom: {self.RowMsg}")
+            print(f"SelfMsg: {self.msg}")
 
         except struct.error as e:
                 print(f"Unpack error: {e}")
@@ -101,6 +102,8 @@ class DataMaster():
         self.RowMsg = "" #row msg je dekodirana vrijednost koju dobijemo iz mikrokontrolera
         self.msg = []
         self.YData = []
+        self.XData = []
+        self.RefTime = 0
 
     # Ne koristimo
     # def IntMsgFunc(self):

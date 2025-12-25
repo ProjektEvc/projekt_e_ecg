@@ -61,7 +61,8 @@ volatile uint8_t streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj.
 
 typedef struct __attribute__((packed)) {
     uint8_t  header;    // 0xAA
-    uint32_t ecg_raw;   // 4 bytes (MAX30003 gives 24-bit, we store in 32
+    uint32_t ecg_raw;   // 4 bytes (MAX30003 gives 24-bit, we store in 32)
+    uint32_t timestamp; // 4 bytes (HAL_GetTick)
     uint8_t  footer;    // 0xZZ
 } ECG_Packet_t;
 //__attribute__ govori kompajleru "sada  cu ti dat neku iznimnu nardebu", packed znači da se adrese u strukturi koju pošaljemo u
@@ -132,7 +133,7 @@ int main(void)
   HAL_UART_Receive_IT(&huart4, &rx_byte, 1); //omogucujemo interrupt da povežemo python sa mikrokontrolerom
 
   myPacket.header = 0xAA;
-  myPacket.footer = 0x0A;
+  myPacket.footer = 0x55;
 
 
   /* USER CODE END 2 */
@@ -389,10 +390,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
                 // STOP STREAM
                 stop_streaming();
             }
-            else if(strcmp(rx_buffer, "#D#") == 0)
-            {
-
-            }
         }
         else
         {
@@ -418,14 +415,14 @@ Mi cemo sa DMA poslat prvi "probni paket", nakon tog će se aktivirat HAL_UART_T
         streaming = 1;
         myPacket.header = 0xAA;
         myPacket.ecg_raw = 0x0;
-        myPacket.footer = 0x0A;
+        myPacket.timestamp = 0;
+        myPacket.footer = 0x55;
         HAL_UART_Transmit_DMA(&huart4,(uint8_t*)&myPacket , sizeof(myPacket));
     }
 }
 
 void stop_streaming(void)
 {
-	transfer_complete = 0;
     streaming = 0;
     HAL_UART_AbortTransmit(&huart4);
 }
@@ -441,6 +438,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	        {
 	            // Ovdje možeš malo promijeniti podatke da vidiš promjenu u Pythonu
 	            myPacket.ecg_raw = 1234;
+	            myPacket.timestamp = 12; // Ako nemaš SysTick, koristi fiksni broj
 
 	            HAL_UART_Transmit_DMA(&huart4, (uint8_t*)&myPacket, sizeof(myPacket));
 	        }
