@@ -10,7 +10,7 @@ class DataMaster():
         self.StopStream = "#S#\n" #završetak streama
         self.Disconnect = "#D#\n"
         self.SynchChannel = 0 #broj kanala koji dobivamo sa mikrokontrolera, necemo koristit za sad
-        self.msg = [] 
+        self.msg = [] #sadži samo int podatke iz ECG-a ili string ako je u pitanje komunikacija i handshaking izemdju mcu i pythona
         self.prevECGdata = 0
 
 
@@ -74,7 +74,7 @@ class DataMaster():
             else:
                 self.prevECGdata = ecg_raw
             
-            self.msg = [ecg_raw, 0]
+            self.msg = [ecg_raw]
             print(f"SelfRom: {self.RowMsg}")
             print(f"SelfMsg: {self.msg}")
 
@@ -137,7 +137,7 @@ class DataMaster():
     def UpdateYdata(self):
         # for ChNumber in range(self.SynchChannel):
         #     self.YData[ChNumber].append(self.msg[ChNumber][0])
-        self.YData[0].append(self.msg[0]) #ovdje se nalazi ecg info, na nultom mjestu je jedini kanal
+        self.YData[0].append(self.msg) #ovdje se nalazi ecg info, na nultom mjestu je jedini kanal
 
     def AdjustData(self):
         lenXData = len(self.XData)

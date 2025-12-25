@@ -309,3 +309,672 @@ arm-none-eabi-size  projekt_e_nucleuo.elf
   22316	     16	   2248	  24580	   6004	projekt_e_nucleuo.elf
 Finished building: default.size.stdout
  
+15:12:27 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+   text	   data	    bss	    dec	    hex	filename
+  22316	     16	   2248	  24580	   6004	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+15:18:10 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:138:16: warning: unused variable 'cnt' [-Wunused-variable]
+  138 |   volatile int cnt = 0;
+      |                ^~~
+../Core/Src/main.c: In function 'HAL_UART_TxCpltCallback':
+../Core/Src/main.c:446:24: error: 'cnt' undeclared (first use in this function); did you mean 'int'?
+  446 |                     if(cnt > 4095){
+      |                        ^~~
+      |                        int
+../Core/Src/main.c:446:24: note: each undeclared identifier is reported only once for each function it appears in
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+15:19:04 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  22348	     16	   2256	  24620	   602c	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+15:22:56 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:22:10: fatal error: stdbool. h: No such file or directory
+   22 | #include <stdbool. h>
+      |          ^~~~~~~~~~~~
+compilation terminated.
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+15:23:07 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:61:24: error: 'True' undeclared here (not in a function); did you mean 'true'?
+   61 | volatile bool toggle = True;
+      |                        ^~~~
+      |                        true
+../Core/Src/main.c: In function 'HAL_UART_TxCpltCallback':
+../Core/Src/main.c:451:48: error: 'False' undeclared (first use in this function); did you mean 'false'?
+  451 |                         if(data == 0) toggle = False;
+      |                                                ^~~~~
+      |                                                false
+../Core/Src/main.c:451:48: note: each undeclared identifier is reported only once for each function it appears in
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+15:23:35 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  22384	     16	   2256	  24656	   6050	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+15:25:12 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'HAL_UART_TxCpltCallback':
+../Core/Src/main.c:450:48: error: 'false' undeclared (first use in this function)
+  450 |                         if(data == 0) toggle = false;
+      |                                                ^~~~~
+../Core/Src/main.c:22:1: note: 'false' is defined in header '<stdbool.h>'; did you forget to '#include <stdbool.h>'?
+   21 | #include <string.h>
+  +++ |+#include <stdbool.h>
+   22 | 
+../Core/Src/main.c:450:48: note: each undeclared identifier is reported only once for each function it appears in
+  450 |                         if(data == 0) toggle = false;
+      |                                                ^~~~~
+../Core/Src/main.c:454:51: error: 'true' undeclared (first use in this function)
+  454 |                         if(data == 4096) toggle = true;
+      |                                                   ^~~~
+../Core/Src/main.c:454:51: note: 'true' is defined in header '<stdbool.h>'; did you forget to '#include <stdbool.h>'?
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+15:25:31 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  22384	     16	   2256	  24656	   6050	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+15:26:20 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  22384	     16	   2256	  24656	   6050	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+15:28:50 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  22456	     16	   2256	  24728	   6098	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+15:30:36 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  22456	     16	   2256	  24728	   6098	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+20:37:49 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:58:1: error: unknown type name 'TIM_HandleTypeDef'; did you mean 'SPI_HandleTypeDef'?
+   58 | TIM_HandleTypeDef htim2;
+      | ^~~~~~~~~~~~~~~~~
+      | SPI_HandleTypeDef
+../Core/Src/main.c:106:36: error: unknown type name 'TIM_HandleTypeDef'; did you mean 'SPI_HandleTypeDef'?
+  106 | void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
+      |                                    ^~~~~~~~~~~~~~~~~
+      |                                    SPI_HandleTypeDef
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:156:3: warning: implicit declaration of function '__HAL_TIM_SET_AUTORELOAD' [-Wimplicit-function-declaration]
+  156 |   __HAL_TIM_SET_AUTORELOAD(&htim2, (SystemCoreClock / (SAMPLE_RATE_HZ * 2)) - 1);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:157:3: warning: implicit declaration of function '__HAL_TIM_SET_PRESCALER' [-Wimplicit-function-declaration]
+  157 |   __HAL_TIM_SET_PRESCALER(&htim2, 1);  // Prescaler = 2 (jer je TIM clock = SystemCoreClock/2)
+      |   ^~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:158:3: warning: implicit declaration of function 'HAL_TIM_Base_Start_IT'; did you mean 'HAL_DMA_Start_IT'? [-Wimplicit-function-declaration]
+  158 |   HAL_TIM_Base_Start_IT(&htim2);
+      |   ^~~~~~~~~~~~~~~~~~~~~
+      |   HAL_DMA_Start_IT
+../Core/Src/main.c: In function 'MX_TIM2_Init':
+../Core/Src/main.c:199:3: error: unknown type name 'TIM_ClockConfigTypeDef'; did you mean 'EXTI_ConfigTypeDef'?
+  199 |   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+      |   ^~~~~~~~~~~~~~~~~~~~~~
+      |   EXTI_ConfigTypeDef
+../Core/Src/main.c:200:3: error: unknown type name 'TIM_MasterConfigTypeDef'; did you mean 'HRTIM_Master_TypeDef'?
+  200 |   TIM_MasterConfigTypeDef sMasterConfig = {0};
+      |   ^~~~~~~~~~~~~~~~~~~~~~~
+      |   HRTIM_Master_TypeDef
+../Core/Src/main.c:202:8: error: request for member 'Instance' in something not a structure or union
+  202 |   htim2.Instance = TIM2;
+      |        ^
+../Core/Src/main.c:203:8: error: request for member 'Init' in something not a structure or union
+  203 |   htim2.Init.Prescaler = 1;  // Podešeno za 200 Hz
+      |        ^
+../Core/Src/main.c:204:8: error: request for member 'Init' in something not a structure or union
+  204 |   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+      |        ^
+../Core/Src/main.c:204:28: error: 'TIM_COUNTERMODE_UP' undeclared (first use in this function)
+  204 |   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+      |                            ^~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:204:28: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c:205:8: error: request for member 'Init' in something not a structure or union
+  205 |   htim2.Init.Period = (SystemCoreClock / (SAMPLE_RATE_HZ * 2)) - 1;  // Za 200 Hz
+      |        ^
+../Core/Src/main.c:206:8: error: request for member 'Init' in something not a structure or union
+  206 |   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+      |        ^
+../Core/Src/main.c:206:30: error: 'TIM_CLOCKDIVISION_DIV1' undeclared (first use in this function)
+  206 |   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+      |                              ^~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:207:8: error: request for member 'Init' in something not a structure or union
+  207 |   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+      |        ^
+../Core/Src/main.c:207:34: error: 'TIM_AUTORELOAD_PRELOAD_ENABLE' undeclared (first use in this function)
+  207 |   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+      |                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:209:7: warning: implicit declaration of function 'HAL_TIM_Base_Init' [-Wimplicit-function-declaration]
+  209 |   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+      |       ^~~~~~~~~~~~~~~~~
+../Core/Src/main.c:214:21: error: request for member 'ClockSource' in something not a structure or union
+  214 |   sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+      |                     ^
+../Core/Src/main.c:214:36: error: 'TIM_CLOCKSOURCE_INTERNAL' undeclared (first use in this function)
+  214 |   sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+      |                                    ^~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:215:7: warning: implicit declaration of function 'HAL_TIM_ConfigClockSource' [-Wimplicit-function-declaration]
+  215 |   if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:220:16: error: request for member 'MasterOutputTrigger' in something not a structure or union
+  220 |   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+      |                ^
+../Core/Src/main.c:220:39: error: 'TIM_TRGO_RESET' undeclared (first use in this function)
+  220 |   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+      |                                       ^~~~~~~~~~~~~~
+../Core/Src/main.c:221:16: error: request for member 'MasterSlaveMode' in something not a structure or union
+  221 |   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+      |                ^
+../Core/Src/main.c:221:35: error: 'TIM_MASTERSLAVEMODE_DISABLE' undeclared (first use in this function)
+  221 |   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+      |                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:222:7: warning: implicit declaration of function 'HAL_TIMEx_MasterConfigSynchronization' [-Wimplicit-function-declaration]
+  222 |   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c: In function 'stop_streaming':
+../Core/Src/main.c:326:3: warning: implicit declaration of function 'HAL_TIM_Base_Stop_IT' [-Wimplicit-function-declaration]
+  326 |   HAL_TIM_Base_Stop_IT(&htim2);
+      |   ^~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c: At top level:
+../Core/Src/main.c:336:36: error: unknown type name 'TIM_HandleTypeDef'; did you mean 'SPI_HandleTypeDef'?
+  336 | void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+      |                                    ^~~~~~~~~~~~~~~~~
+      |                                    SPI_HandleTypeDef
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+20:39:36 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  18296	     16	   2264	  20576	   5060	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+20:41:17 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.d" -MT"Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:44: multiple definition of `hspi2'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:55: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:45: multiple definition of `hdma_spi2_rx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:56: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:46: multiple definition of `hdma_spi2_tx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:57: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:48: multiple definition of `huart4'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:59: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:49: multiple definition of `hdma_uart4_rx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:60: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:50: multiple definition of `hdma_uart4_tx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:61: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:54: multiple definition of `rx_byte'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:65: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:55: multiple definition of `rx_buffer'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:66: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:56: multiple definition of `rx_index'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:67: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:58: multiple definition of `streaming'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:69: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:76: multiple definition of `transfer_complete'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:70: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `main':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:105: multiple definition of `main'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:116: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `SystemClock_Config':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:161: multiple definition of `SystemClock_Config'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:196: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `Error_Handler':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:484: multiple definition of `Error_Handler'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:363: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `HAL_UART_RxCpltCallback':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:372: multiple definition of `HAL_UART_RxCpltCallback'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:241: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `start_streaming':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:420: multiple definition of `start_streaming'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:278: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `stop_streaming':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:432: multiple definition of `stop_streaming'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:296: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `HAL_UART_TxCpltCallback':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:439: multiple definition of `HAL_UART_TxCpltCallback'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:340: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/main.o: in function `main':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:124:(.text.main+0x6): undefined reference to `HAL_Init'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:156:(.text.main+0x4c): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:168:(.text.main+0x56): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:186:(.text.main+0x8c): undefined reference to `HAL_Delay'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/main.o: in function `start_streaming':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:284:(.text.start_streaming+0x22): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/stm32g4xx_it.o: in function `SysTick_Handler':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/stm32g4xx_it.c:193:(.text.SysTick_Handler+0x4): undefined reference to `HAL_IncTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.o: in function `HAL_UART_Transmit':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.c:1135:(.text.HAL_UART_Transmit+0x3a): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.o: in function `UART_WaitOnFlagUntilTimeout':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.c:3395:(.text.UART_WaitOnFlagUntilTimeout+0x1a): undefined reference to `HAL_GetTick'
+collect2.exe: error: ld returned 1 exit status
+make: *** [makefile:64: projekt_e_nucleuo.elf] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+20:42:01 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:44: multiple definition of `hspi2'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:55: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:45: multiple definition of `hdma_spi2_rx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:56: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:46: multiple definition of `hdma_spi2_tx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:57: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:48: multiple definition of `huart4'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:59: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:49: multiple definition of `hdma_uart4_rx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:60: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:50: multiple definition of `hdma_uart4_tx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:61: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:54: multiple definition of `rx_byte'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:65: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:55: multiple definition of `rx_buffer'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:66: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:56: multiple definition of `rx_index'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:67: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:58: multiple definition of `streaming'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:69: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:76: multiple definition of `transfer_complete'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:70: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `main':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:105: multiple definition of `main'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:116: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `SystemClock_Config':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:161: multiple definition of `SystemClock_Config'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:196: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `Error_Handler':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:484: multiple definition of `Error_Handler'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:363: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `HAL_UART_RxCpltCallback':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:372: multiple definition of `HAL_UART_RxCpltCallback'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:241: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `start_streaming':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:420: multiple definition of `start_streaming'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:278: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `stop_streaming':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:432: multiple definition of `stop_streaming'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:296: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `HAL_UART_TxCpltCallback':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:439: multiple definition of `HAL_UART_TxCpltCallback'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:340: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/main.o: in function `main':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:124:(.text.main+0x6): undefined reference to `HAL_Init'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:156:(.text.main+0x4c): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:168:(.text.main+0x56): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:186:(.text.main+0x8c): undefined reference to `HAL_Delay'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/main.o: in function `start_streaming':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:284:(.text.start_streaming+0x22): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/stm32g4xx_it.o: in function `SysTick_Handler':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/stm32g4xx_it.c:193:(.text.SysTick_Handler+0x4): undefined reference to `HAL_IncTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.o: in function `HAL_UART_Transmit':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.c:1135:(.text.HAL_UART_Transmit+0x3a): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.o: in function `UART_WaitOnFlagUntilTimeout':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.c:3395:(.text.UART_WaitOnFlagUntilTimeout+0x1a): undefined reference to `HAL_GetTick'
+collect2.exe: error: ld returned 1 exit status
+make: *** [makefile:64: projekt_e_nucleuo.elf] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+20:42:38 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:44: multiple definition of `hspi2'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:55: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:45: multiple definition of `hdma_spi2_rx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:56: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:46: multiple definition of `hdma_spi2_tx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:57: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:48: multiple definition of `huart4'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:59: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:49: multiple definition of `hdma_uart4_rx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:60: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:50: multiple definition of `hdma_uart4_tx'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:61: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:54: multiple definition of `rx_byte'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:65: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:55: multiple definition of `rx_buffer'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:66: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:56: multiple definition of `rx_index'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:67: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:58: multiple definition of `streaming'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:69: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:76: multiple definition of `transfer_complete'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:70: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `main':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:105: multiple definition of `main'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:116: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `SystemClock_Config':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:161: multiple definition of `SystemClock_Config'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:196: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `Error_Handler':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:484: multiple definition of `Error_Handler'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:363: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `HAL_UART_RxCpltCallback':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:372: multiple definition of `HAL_UART_RxCpltCallback'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:241: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `start_streaming':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:420: multiple definition of `start_streaming'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:278: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `stop_streaming':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:432: multiple definition of `stop_streaming'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:296: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o: in function `HAL_UART_TxCpltCallback':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c:439: multiple definition of `HAL_UART_TxCpltCallback'; ./Core/Src/main.o:C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:340: first defined here
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/main.o: in function `main':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:124:(.text.main+0x6): undefined reference to `HAL_Init'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:156:(.text.main+0x4c): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:168:(.text.main+0x56): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:186:(.text.main+0x8c): undefined reference to `HAL_Delay'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/main.o: in function `start_streaming':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/main.c:284:(.text.start_streaming+0x22): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Core/Src/stm32g4xx_it.o: in function `SysTick_Handler':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Core/Src/stm32g4xx_it.c:193:(.text.SysTick_Handler+0x4): undefined reference to `HAL_IncTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.o: in function `HAL_UART_Transmit':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.c:1135:(.text.HAL_UART_Transmit+0x3a): undefined reference to `HAL_GetTick'
+C:/ST/STM32CubeIDE_1.18.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.win32_1.0.0.202411081344/tools/bin/../lib/gcc/arm-none-eabi/13.3.1/../../../../arm-none-eabi/bin/ld.exe: ./Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.o: in function `UART_WaitOnFlagUntilTimeout':
+C:/Users/Gluscic/Projekt_ECG/projekt_e_nucleuo/Debug/../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_uart.c:3395:(.text.UART_WaitOnFlagUntilTimeout+0x1a): undefined reference to `HAL_GetTick'
+collect2.exe: error: ld returned 1 exit status
+make: *** [makefile:64: projekt_e_nucleuo.elf] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+20:46:43 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.d" -MT"Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.o"
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  22384	     16	   2256	  24656	   6050	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+21:01:11 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'generate_ecg_sample':
+../Core/Src/main.c:497:42: warning: implicit declaration of function 'sin' [-Wimplicit-function-declaration]
+  497 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:22:1: note: include '<math.h>' or provide a declaration of 'sin'
+   21 | #include <string.h>
+  +++ |+#include <math.h>
+   22 | 
+../Core/Src/main.c:497:42: warning: incompatible implicit declaration of built-in function 'sin' [-Wbuiltin-declaration-mismatch]
+  497 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:497:42: note: include '<math.h>' or provide a declaration of 'sin'
+../Core/Src/main.c:506:11: error: 'ecg_packet' undeclared (first use in this function); did you mean 'send_packet'?
+  506 |           ecg_packet.ecg_raw = (uint32_t)sample;
+      |           ^~~~~~~~~~
+      |           send_packet
+../Core/Src/main.c:506:11: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c: In function 'send_packet':
+../Core/Src/main.c:519:55: error: 'ecg_packet' undeclared (first use in this function); did you mean 'send_packet'?
+  519 |             HAL_UART_Transmit_DMA(&huart4, (uint8_t*)&ecg_packet, sizeof(ecg_packet));
+      |                                                       ^~~~~~~~~~
+      |                                                       send_packet
+../Core/Src/main.c: In function 'start_sine_stream':
+../Core/Src/main.c:577:1: error: expected declaration or statement at end of input
+  577 | }
+      | ^
+../Core/Src/main.c: At top level:
+../Core/Src/main.c:568:6: warning: 'Error_Handler' defined but not used [-Wunused-function]
+  568 | void Error_Handler(void)
+      |      ^~~~~~~~~~~~~
+../Core/Src/main.c:523:6: warning: 'HAL_UART_TxCpltCallback' defined but not used [-Wunused-function]
+  523 | void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+      |      ^~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:514:6: warning: 'send_packet' defined but not used [-Wunused-function]
+  514 | void send_packet(void)
+      |      ^~~~~~~~~~~
+../Core/Src/main.c:494:6: warning: 'generate_ecg_sample' defined but not used [-Wunused-function]
+  494 | void generate_ecg_sample(void)
+      |      ^~~~~~~~~~~~~~~~~~~
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+21:03:10 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'generate_ecg_sample':
+../Core/Src/main.c:497:42: warning: implicit declaration of function 'sin' [-Wimplicit-function-declaration]
+  497 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:22:1: note: include '<math.h>' or provide a declaration of 'sin'
+   21 | #include <string.h>
+  +++ |+#include <math.h>
+   22 | 
+../Core/Src/main.c:497:42: warning: incompatible implicit declaration of built-in function 'sin' [-Wbuiltin-declaration-mismatch]
+  497 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:497:42: note: include '<math.h>' or provide a declaration of 'sin'
+../Core/Src/main.c: In function 'send_packet':
+../Core/Src/main.c:519:72: error: 'ecg_packet' undeclared (first use in this function); did you mean 'send_packet'?
+  519 |             HAL_UART_Transmit_DMA(&huart4, (uint8_t*)&myPacket, sizeof(ecg_packet));
+      |                                                                        ^~~~~~~~~~
+      |                                                                        send_packet
+../Core/Src/main.c:519:72: note: each undeclared identifier is reported only once for each function it appears in
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+21:03:31 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'generate_ecg_sample':
+../Core/Src/main.c:497:42: warning: implicit declaration of function 'sin' [-Wimplicit-function-declaration]
+  497 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:22:1: note: include '<math.h>' or provide a declaration of 'sin'
+   21 | #include <string.h>
+  +++ |+#include <math.h>
+   22 | 
+../Core/Src/main.c:497:42: warning: incompatible implicit declaration of built-in function 'sin' [-Wbuiltin-declaration-mismatch]
+  497 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:497:42: note: include '<math.h>' or provide a declaration of 'sin'
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  29448	     16	   2264	  31728	   7bf0	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+21:08:50 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'generate_ecg_sample':
+../Core/Src/main.c:497:42: warning: implicit declaration of function 'sin' [-Wimplicit-function-declaration]
+  497 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:22:1: note: include '<math.h>' or provide a declaration of 'sin'
+   21 | #include <string.h>
+  +++ |+#include <math.h>
+   22 | 
+../Core/Src/main.c:497:42: warning: incompatible implicit declaration of built-in function 'sin' [-Wbuiltin-declaration-mismatch]
+  497 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:497:42: note: include '<math.h>' or provide a declaration of 'sin'
+../Core/Src/main.c: In function 'send_packet':
+../Core/Src/main.c:516:13: error: too few arguments to function 'HAL_UART_Transmit'
+  516 |             HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket));
+      |             ^~~~~~~~~~~~~~~~~
+In file included from ../Core/Inc/stm32g4xx_hal_conf.h:348,
+                 from ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:29,
+                 from ../Core/Inc/main.h:30,
+                 from ../Core/Src/main.c:20:
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:1633:19: note: declared here
+ 1633 | HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
+      |                   ^~~~~~~~~~~~~~~~~
+../Core/Src/main.c: At top level:
+../Core/Src/main.c:518:9: error: expected identifier or '(' before '}' token
+  518 |         }
+      |         ^
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+21:09:18 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:247:13: error: invalid storage class for function 'MX_SPI2_Init'
+  247 | static void MX_SPI2_Init(void)
+      |             ^~~~~~~~~~~~
+../Core/Src/main.c:287:13: error: invalid storage class for function 'MX_UART4_Init'
+  287 | static void MX_UART4_Init(void)
+      |             ^~~~~~~~~~~~~
+../Core/Src/main.c:333:13: error: invalid storage class for function 'MX_DMA_Init'
+  333 | static void MX_DMA_Init(void)
+      |             ^~~~~~~~~~~
+../Core/Src/main.c:361:13: error: invalid storage class for function 'MX_GPIO_Init'
+  361 | static void MX_GPIO_Init(void)
+      |             ^~~~~~~~~~~~
+../Core/Src/main.c: In function 'generate_ecg_sample':
+../Core/Src/main.c:496:42: warning: implicit declaration of function 'sin' [-Wimplicit-function-declaration]
+  496 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:22:1: note: include '<math.h>' or provide a declaration of 'sin'
+   21 | #include <string.h>
+  +++ |+#include <math.h>
+   22 | 
+../Core/Src/main.c:496:42: warning: incompatible implicit declaration of built-in function 'sin' [-Wbuiltin-declaration-mismatch]
+  496 |           float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+      |                                          ^~~
+../Core/Src/main.c:496:42: note: include '<math.h>' or provide a declaration of 'sin'
+../Core/Src/main.c: In function 'send_packet':
+../Core/Src/main.c:515:13: error: too few arguments to function 'HAL_UART_Transmit'
+  515 |             HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket));
+      |             ^~~~~~~~~~~~~~~~~
+In file included from ../Core/Inc/stm32g4xx_hal_conf.h:348,
+                 from ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:29,
+                 from ../Core/Inc/main.h:30,
+                 from ../Core/Src/main.c:20:
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:1633:19: note: declared here
+ 1633 | HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
+      |                   ^~~~~~~~~~~~~~~~~
+../Core/Src/main.c: At top level:
+../Core/Src/main.c:101:13: warning: 'MX_GPIO_Init' used but never defined
+  101 | static void MX_GPIO_Init(void);
+      |             ^~~~~~~~~~~~
+../Core/Src/main.c:102:13: warning: 'MX_DMA_Init' used but never defined
+  102 | static void MX_DMA_Init(void);
+      |             ^~~~~~~~~~~
+../Core/Src/main.c:103:13: warning: 'MX_UART4_Init' used but never defined
+  103 | static void MX_UART4_Init(void);
+      |             ^~~~~~~~~~~~~
+../Core/Src/main.c:104:13: warning: 'MX_SPI2_Init' used but never defined
+  104 | static void MX_SPI2_Init(void);
+      |             ^~~~~~~~~~~~
+../Core/Src/main.c:513:6: warning: 'send_packet' defined but not used [-Wunused-function]
+  513 | void send_packet(void)
+      |      ^~~~~~~~~~~
+../Core/Src/main.c:493:6: warning: 'generate_ecg_sample' defined but not used [-Wunused-function]
+  493 | void generate_ecg_sample(void)
+      |      ^~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:480:6: warning: 'start_sine_stream' defined but not used [-Wunused-function]
+  480 | void start_sine_stream(void){
+      |      ^~~~~~~~~~~~~~~~~
+../Core/Src/main.c:472:6: warning: 'stop_streaming' defined but not used [-Wunused-function]
+  472 | void stop_streaming(void)
+      |      ^~~~~~~~~~~~~~
+../Core/Src/main.c:454:6: warning: 'start_streaming' defined but not used [-Wunused-function]
+  454 | void start_streaming(void)
+      |      ^~~~~~~~~~~~~~~
+../Core/Src/main.c:409:6: warning: 'HAL_UART_RxCpltCallback' defined but not used [-Wunused-function]
+  409 | void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+      |      ^~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:361:13: warning: 'MX_GPIO_Init' defined but not used [-Wunused-function]
+  361 | static void MX_GPIO_Init(void)
+      |             ^~~~~~~~~~~~
+../Core/Src/main.c:333:13: warning: 'MX_DMA_Init' defined but not used [-Wunused-function]
+  333 | static void MX_DMA_Init(void)
+      |             ^~~~~~~~~~~
+../Core/Src/main.c:287:13: warning: 'MX_UART4_Init' defined but not used [-Wunused-function]
+  287 | static void MX_UART4_Init(void)
+      |             ^~~~~~~~~~~~~
+../Core/Src/main.c:247:13: warning: 'MX_SPI2_Init' defined but not used [-Wunused-function]
+  247 | static void MX_SPI2_Init(void)
+      |             ^~~~~~~~~~~~
+../Core/Src/main.c:200:6: warning: 'SystemClock_Config' defined but not used [-Wunused-function]
+  200 | void SystemClock_Config(void)
+      |      ^~~~~~~~~~~~~~~~~~
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+21:12:09 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'send_packet':
+../Core/Src/main.c:515:13: error: too few arguments to function 'HAL_UART_Transmit'
+  515 |             HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket));
+      |             ^~~~~~~~~~~~~~~~~
+In file included from ../Core/Inc/stm32g4xx_hal_conf.h:348,
+                 from ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:29,
+                 from ../Core/Inc/main.h:30,
+                 from ../Core/Src/main.c:20:
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:1633:19: note: declared here
+ 1633 | HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
+      |                   ^~~~~~~~~~~~~~~~~
+../Core/Src/main.c: At top level:
+../Core/Src/main.c:517:9: error: expected identifier or '(' before '}' token
+  517 |         }
+      |         ^
+make: *** [Core/Src/subdir.mk:34: Core/Src/main.o] Error 1
+"make -j4 all" terminated with exit code 2. Build might be incomplete.
+21:13:17 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  29408	     16	   2264	  31688	   7bc8	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 
+21:16:50 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+make -j4 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: projekt_e_nucleuo.elf
+ 
+arm-none-eabi-size  projekt_e_nucleuo.elf 
+arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
+   text	   data	    bss	    dec	    hex	filename
+  29424	     16	   2264	  31704	   7bd8	projekt_e_nucleuo.elf
+Finished building: default.size.stdout
+ 
+Finished building: projekt_e_nucleuo.list
+ 

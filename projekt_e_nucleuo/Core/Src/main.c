@@ -19,7 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include <string.h>
-
+#include "math.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -32,6 +32,18 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define  SAMPLE_RATE_HZ 200
+#define SAMPLE_PERIOD_MS (1000 / SAMPLE_RATE_HZ) //1000ms / 200 Hz = 5ms
+
+
+#define PI  3.14159
+#define TWO_PI (2.0 * PI)
+
+
+//parametri sinusa
+#define SIN_FREQ_HZ 1.0
+#define SIN_AMPLITUDE 1000.0
+#define DC_OFFSET 2048.0
 
 /* USER CODE END PD */
 
@@ -56,6 +68,13 @@ char rx_buffer[32];
 uint8_t rx_index = 0;
 
 volatile uint8_t streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+volatile int data = 0;
+volatile uint8_t toggle = 1;
+
+
+volatile uint8_t timer_flag = 0;
+float sin_phase = 0.0;
+float phase_increment = 0;
 
 
 
@@ -72,7 +91,7 @@ ECG_Packet_t myPacket;
 
 
 volatile uint8_t transfer_complete = 1; // Zastavica sa kojom ćemo gledat je li UART transfer  gotovo i mozemo li opet preći na SPI
-
+uint32_t last_tick = 0; //variajbla za kontrolu vremena
 
 
 /* USER CODE END PV */
@@ -92,6 +111,9 @@ static void MX_SPI2_Init(void);
 void start_streaming(void);
 void stop_streaming(void);
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart); //poziva se nakon prijenosa svakog paketa
+void start_sine_stream(void);
+void send_packet(void);
+void generate_ecg_sample(void);
 
 /* USER CODE END 0 */
 
@@ -135,6 +157,8 @@ int main(void)
   myPacket.footer = 0x0A;
 
 
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -143,11 +167,32 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
+
+
     /* USER CODE BEGIN 3 */
+	  if (streaming)
+	    {
+	      // Pošalji paket
+
+	        generate_ecg_sample();
+	        send_packet();
+
+
+	      // Čekaj točno 5ms za 200 Hz
+	      HAL_Delay(5);
+	    }
+	    else
+	    {
+	      // Kad nema streaming, provjeri UART komande
+	      HAL_Delay(10);
+	    }
+
+
+
   }
   /* USER CODE END 3 */
-}
 
+}
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -382,7 +427,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             {
             	//strcmp(a,b) - usporedjuje dva stringa i ako su jednaki vraca nulu
                 // START STREAM
-                start_streaming();
+                //start_streaming();
+            	start_sine_stream();
             }
             else if (strcmp(rx_buffer, "#S#") == 0)
             {
@@ -430,6 +476,47 @@ void stop_streaming(void)
     HAL_UART_AbortTransmit(&huart4);
 }
 
+
+void start_sine_stream(void){
+	if (!streaming)
+	  {
+	    streaming = 1;
+	    transfer_complete = 1;
+	    sin_phase = 0.0;
+	    // Pošalji prvi paket
+	    generate_ecg_sample();
+	    send_packet();
+	  }
+}
+
+
+void generate_ecg_sample(void)
+	{
+	  // Generiraj sinusni val
+      phase_increment = (TWO_PI * SIN_FREQ_HZ) / SAMPLE_RATE_HZ;
+	  float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+
+	  // Ograniči vrijednosti (za 12-bitni raspon 0-4095)
+	  if (sample > 4095.0)
+	    sample = 4095.0;
+	  if (sample < 0.0)
+	    sample = 0.0;
+
+	  // Spremi u paket
+	  myPacket.ecg_raw = (uint32_t)sample;
+
+	  // Ažuriraj fazu za sljedeći sample
+	  sin_phase += phase_increment;
+	  if (sin_phase > TWO_PI)
+	    sin_phase -= TWO_PI;
+	}
+
+void send_packet(void)
+	{
+	    HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket), 5); //5 ms timeout
+
+	}
+
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == UART4)
@@ -440,7 +527,16 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	        if (streaming)
 	        {
 	            // Ovdje možeš malo promijeniti podatke da vidiš promjenu u Pythonu
-	            myPacket.ecg_raw = 1234;
+	            if(toggle){
+	            	data = data + 1;
+	            	myPacket.ecg_raw = data;
+	            	if(data == 0) toggle = 0;
+	            }else{
+	            	data = data - 1;
+	            	myPacket.ecg_raw = data;
+	            	if(data == 4096) toggle = 1;
+
+	            }
 
 	            HAL_UART_Transmit_DMA(&huart4, (uint8_t*)&myPacket, sizeof(myPacket));
 	        }
@@ -493,3 +589,5 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
+
