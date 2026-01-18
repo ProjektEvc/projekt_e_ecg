@@ -19,7 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include <string.h>
-#include "math.h"
+#include "PanTompkins.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -32,21 +33,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define  SAMPLE_RATE_HZ 200
-#define SAMPLE_PERIOD_MS (1000 / SAMPLE_RATE_HZ) //1000ms / 200 Hz = 5ms
-
-
-
-
-
-#define PI  3.14159
-#define TWO_PI (2.0 * PI)
-
 
 //parametri sinusa
-#define SIN_FREQ_HZ 1.0
-#define SIN_AMPLITUDE 1000.0
-#define DC_OFFSET 2048.0
+
 
 /* USER CODE END PD */
 
@@ -60,9 +49,47 @@ SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi2_rx;
 DMA_HandleTypeDef hdma_spi2_tx;
 
+TIM_HandleTypeDef htim2;
+
 UART_HandleTypeDef huart4;
 DMA_HandleTypeDef hdma_uart4_rx;
 DMA_HandleTypeDef hdma_uart4_tx;
+
+/* USER CODE BEGIN PV */
+
+uint8_t rx_byte;
+char rx_buffer[32];
+uint8_t rx_index = 0;
+
+
+volatile uint8_t streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+volatile int data = 0;
+volatile uint8_t toggle = 1;
+volatile uint16_t mock_index = 0;
+
+
+volatile uint8_t timer_flag = 0;
+float sin_phase = 0.0;
+float phase_increment = 0;
+volatile int bpm = 0;
+
+
+
+typedef struct __attribute__((packed)) {
+    uint8_t  header;    // 0xAA
+    uint32_t ecg_raw;   // 4 bytes (MAX30003 gives 24-bit, we store in 32
+    int bpm;
+    uint8_t  footer;    // 0xZZ
+} ECG_Packet_t;
+//__attribute__ govori kompajleru "sada  cu ti dat neku iznimnu nardebu", packed znači da se adrese u strukturi koju pošaljemo u
+//mikrokontroler neće poravnati na adrese djeljive sa 4, već čemo ih "stisnut skupa
+
+
+ECG_Packet_t myPacket;
+
+
+volatile uint8_t transfer_complete = 1; // Zastavica sa kojom ćemo gledat je li UART transfer  gotovo i mozemo li opet preći na SPI
+
 
 
 const uint16_t ecg_mock_data[1400] = {
@@ -239,40 +266,6 @@ const uint16_t ecg_mock_data[1400] = {
 	0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
 };
-/* USER CODE BEGIN PV */
-
-uint8_t rx_byte;
-char rx_buffer[32];
-uint8_t rx_index = 0;
-
-
-volatile uint8_t streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
-volatile int data = 0;
-volatile uint8_t toggle = 1;
-volatile uint16_t mock_index = 0;
-
-
-volatile uint8_t timer_flag = 0;
-float sin_phase = 0.0;
-float phase_increment = 0;
-
-
-
-typedef struct __attribute__((packed)) {
-    uint8_t  header;    // 0xAA
-    uint32_t ecg_raw;   // 4 bytes (MAX30003 gives 24-bit, we store in 32
-    uint8_t  footer;    // 0xZZ
-} ECG_Packet_t;
-//__attribute__ govori kompajleru "sada  cu ti dat neku iznimnu nardebu", packed znači da se adrese u strukturi koju pošaljemo u
-//mikrokontroler neće poravnati na adrese djeljive sa 4, već čemo ih "stisnut skupa
-
-
-ECG_Packet_t myPacket;
-
-
-volatile uint8_t transfer_complete = 1; // Zastavica sa kojom ćemo gledat je li UART transfer  gotovo i mozemo li opet preći na SPI
-uint32_t last_tick = 0; //variajbla za kontrolu vremena
-
 
 /* USER CODE END PV */
 
@@ -282,18 +275,22 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_UART4_Init(void);
 static void MX_SPI2_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void start_streaming(void);
+
 void stop_streaming(void);
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart); //poziva se nakon prijenosa svakog paketa
-void start_sine_stream(void);
+void start_stream(void);
 void send_packet(void);
-void generate_ecg_sample(void);
+int generate_ecg_sample(void);
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim); //poziva sa frekvnecijom 128 Hz
+
+
 
 /* USER CODE END 0 */
 
@@ -329,12 +326,15 @@ int main(void)
   MX_DMA_Init();
   MX_UART4_Init();
   MX_SPI2_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_TIM_Base_Start_IT(&htim2);
   HAL_UART_Receive_IT(&huart4, &rx_byte, 1); //omogucujemo interrupt da povežemo python sa mikrokontrolerom
 
   myPacket.header = 0xAA;
   myPacket.footer = 0x0A;
+  myPacket.bpm = 0;
 
 
 
@@ -347,19 +347,17 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-
-
     /* USER CODE BEGIN 3 */
 	  if (streaming)
 	    {
 	      // Pošalji paket
 
-	        generate_ecg_sample();
-	        send_packet();
+	       // generate_ecg_sample();
+	      // send_packet();
 
 
 	      // Čekaj točno 5ms za 200 Hz
-	      HAL_Delay(5);
+	     //HAL_Delay(5);
 	    }
 	    else
 	    {
@@ -371,8 +369,8 @@ int main(void)
 
   }
   /* USER CODE END 3 */
-
 }
+
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -384,7 +382,7 @@ void SystemClock_Config(void)
 
   /** Configure the main internal regulator output voltage
   */
-  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1_BOOST);
+  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -394,8 +392,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV4;
-  RCC_OscInitStruct.PLL.PLLN = 85;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 9;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -413,7 +411,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -438,7 +436,7 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
@@ -456,6 +454,51 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 7200;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 78;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
 
 }
 
@@ -607,9 +650,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             {
             	//strcmp(a,b) - usporedjuje dva stringa i ako su jednaki vraca nulu
                 // START STREAM
-                //start_streaming();
             	HAL_UART_Receive_IT(&huart4, &rx_byte, 1);
-            	start_sine_stream();
+            	start_stream();
             }
             else if (strcmp(rx_buffer, "#S#") == 0)
             {
@@ -633,23 +675,27 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
 }
 
-void start_streaming(void)
-/*
-U pythonu kliknemo na gumb stream, nakon toga poašlje se znak "#A#" i dolazimo u ovaj potprogram
-Mi cemo sa DMA poslat prvi "probni paket", nakon tog će se aktivirat HAL_UART_TxCpltCallback(),
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
+	if(htim->Instance == TIM2){
+
+		if (streaming)
+			   {
+			     // Pošalji paket
+
+			      data = generate_ecg_sample();
+			      myPacket.ecg_raw = data;
+			      bpm = PanTompkins_Process(data);
+			      myPacket.bpm = bpm;
+
+			      HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket), 5); //5 ms timeout
+
+			   }
+
+	}
 
 
- */
-{
-    if (!streaming)
-    {
-        streaming = 1;
-        myPacket.header = 0xAA;
-        myPacket.ecg_raw = 0x0;
-        myPacket.footer = 0x0A;
-        HAL_UART_Transmit_DMA(&huart4,(uint8_t*)&myPacket , sizeof(myPacket));
-    }
 }
+
 
 void stop_streaming(void)
 {
@@ -659,54 +705,26 @@ void stop_streaming(void)
 }
 
 
-void start_sine_stream(void){
+void start_stream(void){
 	if (!streaming)
 	  {
 	    streaming = 1;
 	    transfer_complete = 1;
-	    sin_phase = 0.0;
-	    // Pošalji prvi paket
-	    generate_ecg_sample();
-	    send_packet();
 	  }
 }
 
 
 
-
-
-
-void generate_ecg_sample(void)
+int generate_ecg_sample(void)
 	{
-	  // Generiraj sinusni val
-      phase_increment = (TWO_PI * SIN_FREQ_HZ) / SAMPLE_RATE_HZ;
-	  float sample = SIN_AMPLITUDE * sin(sin_phase) + DC_OFFSET;
+    if(mock_index == 1299){
+    	mock_index = 0;
+    }
+    mock_index += 1;
+    return ecg_mock_data[mock_index];
 
-	  // Ograniči vrijednosti (za 12-bitni raspon 0-4095)
-	  if (sample > 4095.0)
-	    sample = 4095.0;
-	  if (sample < 0.0)
-	    sample = 0.0;
-
-	  // Spremi u paket
-	  myPacket.ecg_raw = ecg_mock_data[mock_index];
-	  mock_index += 1;
-	  if(mock_index == 1399){
-		  mock_index = 0;
-	  }
-
-	  // Ažuriraj fazu za sljedeći sample
-	  sin_phase += phase_increment;
-
-	  if (sin_phase > TWO_PI)
-	    sin_phase -= TWO_PI;
 	}
 
-void send_packet(void)
-	{
-	    HAL_UART_Transmit(&huart4, (uint32_t*)&myPacket, sizeof(myPacket), 5); //5 ms timeout
-
-	}
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -780,5 +798,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-

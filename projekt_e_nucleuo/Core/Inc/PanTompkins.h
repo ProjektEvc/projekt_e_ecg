@@ -5,21 +5,17 @@
  *      Author: Gluscic
  */
 
-#ifndef INC_PANTOMPKINS_H_
-#define INC_PANTOMPKINS_H_
+#ifndef PANTOMPKINS_H_
+#define PANTOMPKINS_H_
 
-void PanTompkins();
-int LowPassFilter(int data);
-int HighPassFilter(int data);
-int Derivative(int data);
-int MovingWindowIntegral(int data);
-int PeakDetection(int prev_prev_data, int prev_data, int data);
-int SignalPeak(int p, int sp);
-int SignalPeak2(int p, int sp);
-int Threshold1(int np, int sp);
-int Threshold2(int t1);
-int RRAverage1(int rr);
-int RRAverage2(int rr, int rr_avg2);
+#include <stdint.h>
 
+/* Constants */
+#define FS 128          // Sampling frequency
+#define BUF_SIZE 64     // Buffer for peak search
 
-#endif /* INC_PANTOMPKINS_H_ */
+/* Function Prototypes */
+void PanTompkins_Init(void);
+int PanTompkins_Process(int raw_sample);
+
+#endif /* PANTOMPKINS_H_ */

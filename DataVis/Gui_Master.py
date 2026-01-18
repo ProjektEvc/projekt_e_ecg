@@ -254,6 +254,21 @@ class ConnGUI():
 
     def UpdateChart(self):
         try:
+
+            for i in range(len(self.chartMaster.ControlFrames)):
+
+                 #self.ControlFrames = [LabelFrame, Gumb za +, gumb za -, natpis BPM, broja za BPM]
+            # The BPM label is at index 1 in our new ControlFrames list structure
+            # Accessing the stored Label object
+                bpm_label = self.chartMaster.ControlFrames[i][4] 
+                current_bpm = self.data.currBPM
+
+                if(current_bpm <= 100 & current_bpm >= 60):
+                    bpm_label.config(text=str(self.data.currBPM), fg = "green")
+                else:
+                    bpm_label.config(text=str(self.data.currBPM), fg = "red")
+
+
             #myDisplayChannels = []
             for MyChannelOpt in range(len(self.chartMaster.ViewVar)):
                 #prolazimo koz sve ViewVar-ove koje imamo i gledamo što je označeno na njima
@@ -429,6 +444,16 @@ class DisGUI():
         self.ControlFrames[self.totalframes].append(Button(self.ControlFrames[self.totalframes][0], text = "+", bg = "white", width = btnW, height = btnH, command = partial(self.AddChannel, self.ChannelFrame[self.totalframes])))
         self.ControlFrames[self.totalframes][1].grid(column = 0, row = 0, padx = 5, pady = 5)
 
+
+        # Label to show "BPM:" text
+       # self.bpm_text_label = Label(self.ControlFrames[self.totalframes][0], text="BPM:", bg="white", font=("Arial", 10, "bold"))
+       # self.bpm_text_label.grid(column=0, row=4, pady=2)
+
+        # The actual BPM value label (stored at index 3 in ControlFrames list)
+       # self.bpm_value_label = Label(self.ControlFrames[self.totalframes][0], text="--", bg="white", fg="red", font=("Arial", 14, "bold"))
+       # self.bpm_value_label.grid(column=1, row=1, pady=2)
+       # self.ControlFrames[self.totalframes].append(self.bpm_value_label) # Store reference at index 3
+
         self.ControlFrames[self.totalframes].append(Button(self.ControlFrames[self.totalframes][0], text = "-", bg = "white", width = btnW, height = btnH, command = partial(self.DeleteChannel, self.ChannelFrame[self.totalframes])))
         self.ControlFrames[self.totalframes][2].grid(column = 1, row = 0, padx = 5, pady = 5)
 
@@ -436,6 +461,15 @@ class DisGUI():
 
 
         #koristimo partial.function(args) jer sa "normalnom sintaksom", command = self.function, nebi mogli posalti argumente
+
+        self.ControlFrames[self.totalframes].append(Label(self.ControlFrames[self.totalframes][0], text = "BPM: ", bg = "white"))
+        self.ControlFrames[self.totalframes][3].grid(column = 0, row = 1, padx = 5, pady = 5)
+        self.ControlFrames[self.totalframes].append(Label(self.ControlFrames[self.totalframes][0], text = " -- ", bg = "white", fg = "green"))
+        self.ControlFrames[self.totalframes][4].grid(column = 1, row = 1, padx = 5, pady = 5)
+
+        #Kad bi imali više kanala tu bi mogli imat [bpm1,bpm2,bpm3,bpm4,...]
+
+
 
     def AddChannelFrame(self):
         self.ChannelFrame.append([])
@@ -456,7 +490,7 @@ class DisGUI():
     def AddChannel(self, ChannelFrame):
 
         #winfo_children gleda koliko widgeta sadrži naš LabelFrame 
-        if len(ChannelFrame[0].winfo_children()) < 8:
+        if len(ChannelFrame[0].winfo_children()) < 4:
             NewFrameChannel = LabelFrame(ChannelFrame[0], bg = "white") #LabelFrame(root, args..)
 
 

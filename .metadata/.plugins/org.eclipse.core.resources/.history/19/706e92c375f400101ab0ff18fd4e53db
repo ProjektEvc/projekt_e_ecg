@@ -1,0 +1,62 @@
+/*
+ * PanTompkins.h
+ *
+ *  Created on: Jan 18, 2026
+ *      Author: Gluscic
+ */
+
+#ifndef PANTOMPKINS_H_
+#define PANTOMPKINS_H_
+
+#include <stdint.h>
+
+/* ============================================================================
+   PUBLIC API
+   ============================================================================ */
+
+/**
+ * @brief Initialize Pan-Tompkins algorithm
+ *
+ * Must be called once at startup before processing any samples.
+ * Clears all internal state and sets up initial thresholds.
+ */
+void PanTompkins_Init(void);
+
+/**
+ * @brief Process one ECG sample
+ *
+ * Call this function for each new ECG sample at 128 Hz.
+ * The algorithm will automatically detect QRS complexes and calculate BPM.
+ *
+ * @param ecg_sample Raw ECG sample value (typically 0-4095 for 12-bit ADC)
+ * @return 1 if a heartbeat was detected in this sample, 0 otherwise
+ */
+uint8_t PanTompkins_ProcessSample(int32_t ecg_sample);
+
+/**
+ * @brief Get current heart rate in BPM
+ *
+ * Returns the most recent BPM calculation based on RR interval averaging.
+ *
+ * @return Heart rate in beats per minute (30-250), or 0 if not enough data
+ */
+int32_t PanTompkins_GetBPM(void);
+
+/**
+ * @brief Check if BPM reading is valid
+ *
+ * The BPM reading becomes valid after detecting at least 2 heartbeats.
+ *
+ * @return 1 if BPM is valid, 0 if not enough beats have been detected yet
+ */
+uint8_t PanTompkins_IsValid(void);
+
+/**
+ * @brief Reset algorithm
+ *
+ * Clears all internal state and history. Equivalent to calling Init() again.
+ * Use this if you want to restart detection from scratch.
+ */
+void PanTompkins_Reset(void);
+
+#endif /* PANTOMPKINS_H_ */

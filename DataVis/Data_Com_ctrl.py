@@ -12,6 +12,7 @@ class DataMaster():
         self.SynchChannel = 0 #broj kanala koji dobivamo sa mikrokontrolera, necemo koristit za sad
         self.msg = [] #sadži samo int podatke iz ECG-a ili string ako je u pitanje komunikacija i handshaking izemdju mcu i pythona
         self.prevECGdata = 0
+        self.currBPM = 0
 
 
         #liste sa kojima ćemo crtat grafove, imat će podatke i vrijeme
@@ -68,7 +69,8 @@ class DataMaster():
         try:
             header = self.RowMsg[0]
             ecg_raw = struct.unpack('<I', self.RowMsg[1:5])[0]       # little-endian uint32
-            footer = self.RowMsg[5]
+            self.currBPM = struct.unpack('<I', self.RowMsg[5:9])[0]
+            footer = self.RowMsg[9]
             if(ecg_raw > 4096):
                 ecg_raw = self.prevECGdata
             else:

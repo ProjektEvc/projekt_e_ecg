@@ -1,30 +1,17 @@
-12:31:48 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
+14:59:11 **** Incremental Build of configuration Debug for project projekt_e_nucleuo ****
 make -j4 all 
 arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G474xx -c -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
-../Core/Src/main.c: In function 'send_packet':
-../Core/Src/main.c:707:40: warning: passing argument 2 of 'HAL_UART_Transmit' from incompatible pointer type [-Wincompatible-pointer-types]
-  707 |             HAL_UART_Transmit(&huart4, (uint32_t*)&myPacket, sizeof(myPacket), 5); //5 ms timeout
-      |                                        ^~~~~~~~~~~~~~~~~~~~
-      |                                        |
-      |                                        uint32_t * {aka long unsigned int *}
-In file included from ../Core/Inc/stm32g4xx_hal_conf.h:348,
-                 from ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:29,
-                 from ../Core/Inc/main.h:30,
-                 from ../Core/Src/main.c:20:
-../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:1633:79: note: expected 'const uint8_t *' {aka 'const unsigned char *'} but argument is of type 'uint32_t *' {aka 'long unsigned int *'}
- 1633 | HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
-      |                                                                ~~~~~~~~~~~~~~~^~~~~
 arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 Finished building target: projekt_e_nucleuo.elf
  
 arm-none-eabi-size  projekt_e_nucleuo.elf 
 arm-none-eabi-objdump -h -S projekt_e_nucleuo.elf  > "projekt_e_nucleuo.list"
    text	   data	    bss	    dec	    hex	filename
-  32280	     16	   2264	  34560	   8700	projekt_e_nucleuo.elf
+  29592	     28	   3180	  32800	   8020	projekt_e_nucleuo.elf
 Finished building: default.size.stdout
  
 Finished building: projekt_e_nucleuo.list
  
 
-12:31:49 Build Finished. 0 errors, 1 warnings. (took 1s.237ms)
+14:59:12 Build Finished. 0 errors, 0 warnings. (took 1s.359ms)
 

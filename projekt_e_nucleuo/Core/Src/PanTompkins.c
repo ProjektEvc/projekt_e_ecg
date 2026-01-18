@@ -1,324 +1,135 @@
-#include <stdio.h>
+#include "pantompkins.h"
 
-void PanTompkins(){ //argument?
+/* Static variables to maintain state between calls */
+static int filtered[BUF_SIZE];
+static int integrated[3];
+static int filtered_idx = 0;
 
-    static int data[32];
-    int i = 0;
-    static int filtered[64];
-    static int integrated[3];
-    static int sample;
-    static int peakf;
-    static int speakf;
-    static int npeakf;
-    static int thresholdf1;
-    static int thresholdf2;
-    static int peaki;
-    static int speaki;
-    static int npeaki;
-    static int thresholdi1;
-    static int thresholdi2;
-    static int rr = 0;
-    static int rr_limited;
-    static int rr_avg;
-    static int rr_avg_limited;
-    static int rr_low_limit;
-    static int rr_high_limit;
-    static int rr_missed_limit;
-    static int filtered_signal;
-    static int n_samples;
-    static int r_n_samples = -1;
-    static int last_r_n_samples = -1;
-    static int last_r_idx = -1;
-    static int r_idx = 0;
-    static int bpm = 0;
+static int spki = 0, npki = 0, thresholdi1 = 0, thresholdi2 = 0;
+static int spkf = 0, npkf = 0, thresholdf1 = 0, thresholdf2 = 0;
 
-    static int filtered_idx = 0;
-    static int buf_size = 64;
-    static int fs = 200;
+static int n_samples = 0;
+static int last_r_n_samples = -1;
+static int rr_avg_limited = 0;
+static int bpm = 0;
 
-    int j = 0;
-    int loc_max = 0;
-    int idx = 0;
-    int filtered_abs = 0;
-    int loc_max_idx = 0;
+/* Internal Filter Prototypes */
+static int LowPassFilter(int data);
+static int HighPassFilter(int data);
+static int Derivative(int data);
+static int MovingWindowIntegral(int data);
 
-    // dodati ucitavanje podataka
+void PanTompkins_Init(void) {
+    n_samples = 0;
+    last_r_n_samples = -1;
+    // Initial estimates for thresholds (adjust based on your ADC range)
+    spki = 1000;
+    thresholdi1 = 500;
+}
 
-    for(i = 0; i < 32; i++) {
+int PanTompkins_Process(int raw_sample) {
+    n_samples++;
 
-        n_samples++;
+    // 1. Filter Chain
+    int sample = LowPassFilter(raw_sample);
+    sample = HighPassFilter(sample);
 
-        sample = data[i];
-        sample = LowPassFilter(sample);
-        sample = HighPassFilter(sample);
+    // Store in circular buffer for back-search
+    filtered[filtered_idx] = sample;
+    int current_f_idx = filtered_idx;
+    filtered_idx = (filtered_idx + 1) % BUF_SIZE;
 
-        filtered[filtered_idx] = sample;
-        filtered_idx = (filtered_idx + 1) % buf_size;
+    sample = Derivative(sample);
+    sample = sample * sample;
+    int integrated_val = MovingWindowIntegral(sample);
 
-        sample = Derivative(sample);
-        sample = sample*sample;
-        sample = MovingWindowIntegral(sample);
+    // 2. Shift integration buffer to detect peaks
+    integrated[0] = integrated[1];
+    integrated[1] = integrated[2];
+    integrated[2] = integrated_val;
 
-        for(j = 0; j < 2; j++){
-            integrated[j] = integrated[j+1];
-        }
-        integrated[2] = sample;
+    // 3. Peak Detection (Local max)
+    if (integrated[1] > integrated[0] && integrated[1] > integrated[2]) {
+        int peaki = integrated[1];
 
-        peaki = PeakDetection(integrated[0], integrated[1], integrated[2]);
+        if (peaki >= thresholdi1) {
+            // Signal Peak in Integration
+            spki = (peaki >> 3) + (spki - (spki >> 3)); // 0.125 * p + 0.875 * sp
 
-        if(peaki != 0) {
-
-            if(peaki >= thresholdi1) {
-
-                speaki = SignalPeak(peaki, speaki);
-
-                loc_max = 0;
-                idx = 0;
-                filtered_abs = 0;
-                loc_max_idx = 0;
-
-                for(j = 0; j < 32; j++){
-                    idx = filtered_idx - j;
-                    if(idx < 0) idx += buf_size;
-                    filtered_abs = filtered[idx];
-                    if(filtered_abs < 0) filtered_abs = -filtered_abs;
-                    if(filtered_abs >= loc_max){
-                        loc_max = filtered_abs;
-                        loc_max_idx = j;
-                    }
-                }
-
-                if(loc_max > thresholdf1){
-                    speakf = SignalPeak(loc_max, speakf);
-                    last_r_n_samples = r_n_samples;
-                    r_n_samples = n_samples - loc_max_idx;
-                    if(last_r_n_samples >= 0) rr = r_n_samples - last_r_n_samples;
-                    rr_avg = RRAverage1(rr);
-                    rr_avg_limited = RRAverage2(rr, rr_avg_limited);
-                    rr_low_limit = 0.92*rr_avg_limited;
-                    rr_high_limit = 1.16*rr_avg_limited;
-                    rr_missed_limit = 1.66*rr_avg_limited;
-                } else {
-                    npeakf = SignalPeak(loc_max, npeakf);
-                }
-
-                if((n_samples - r_n_samples) >= rr_missed_limit){
-                    if(loc_max > thresholdf2){
-                    speakf = SignalPeak2(loc_max, speakf);
-                    last_r_n_samples = r_n_samples;
-                    r_n_samples = n_samples - loc_max_idx;
-                    if(last_r_n_samples >= 0) rr = r_n_samples - last_r_n_samples;
-                    rr_avg = RRAverage1(rr);
-                    rr_avg_limited = RRAverage2(rr, rr_avg_limited);
-                    rr_low_limit = 0.92*rr_avg_limited;
-                    rr_high_limit = 1.16*rr_avg_limited;
-                    rr_missed_limit = 1.66*rr_avg_limited;
-                    }
-                }
-
-
-            } else{
-                npeaki = SignalPeak(peaki, npeaki);
-
-                if((n_samples - r_n_samples) >= rr_missed_limit){
-                    if(peaki >= thresholdi2){
-
-                        speaki = SignalPeak2(peaki, speaki);
-
-                        loc_max = 0;
-                        idx = 0;
-                        filtered_abs = 0;
-                        loc_max_idx = 0;
-
-                        for(j = 0; j < 32; j++){
-                            idx = filtered_idx - j;
-                            if(idx < 0) idx += buf_size;
-                            filtered_abs = filtered[idx];
-                            if(filtered_abs < 0) filtered_abs = -filtered_abs;
-                            if(filtered_abs >= loc_max){
-                                loc_max = filtered_abs;
-                                loc_max_idx = j;
-                            }
-                        }
-
-                        last_r_n_samples = r_n_samples;
-                        r_n_samples = n_samples - loc_max_idx;
-                        if(last_r_n_samples >= 0) rr = r_n_samples - last_r_n_samples;
-                        rr_avg = RRAverage1(rr);
-                        rr_avg_limited = RRAverage2(rr, rr_avg_limited);
-                        rr_low_limit = 0.92*rr_avg_limited;
-                        rr_high_limit = 1.16*rr_avg_limited;
-                        rr_missed_limit = 1.66*rr_avg_limited;
-
-                    }
+            // Find max in filtered signal (back-search 32 samples)
+            int loc_max = 0;
+            int loc_max_idx = 0;
+            for (int j = 0; j < 32; j++) {
+                int idx = (current_f_idx - j + BUF_SIZE) % BUF_SIZE;
+                int val = (filtered[idx] < 0) ? -filtered[idx] : filtered[idx];
+                if (val > loc_max) {
+                    loc_max = val;
+                    loc_max_idx = j;
                 }
             }
+
+            if (loc_max >= thresholdf1) {
+                spkf = (loc_max >> 3) + (spkf - (spkf >> 3));
+
+                int r_n_samples = n_samples - loc_max_idx;
+                if (last_r_n_samples != -1) {
+                    int rr = r_n_samples - last_r_n_samples;
+                    // Update RR Average (Simplification of your RRAverage logic)
+                    if (rr_avg_limited == 0) rr_avg_limited = rr;
+                    else rr_avg_limited = (rr >> 3) + (rr_avg_limited - (rr_avg_limited >> 3));
+
+                    if (rr_avg_limited > 0) {
+                        bpm = (60 * FS) / rr_avg_limited;
+                    }
+                }
+                last_r_n_samples = r_n_samples;
+            }
+        } else {
+            // Noise Peak
+            npki = (peaki >> 3) + (npki - (npki >> 3));
         }
 
-
+        // Update Thresholds
+        thresholdi1 = npki + ((spki - npki) >> 2); // np + 0.25*(sp-np)
+        thresholdf1 = npkf + ((spkf - npkf) >> 2);
     }
 
-    bpm = (60 * fs)/(rr_avg);
-
+    return bpm;
 }
 
-
-int LowPassFilter(int data) {
-
+/* Filter Implementations */
+static int LowPassFilter(int data) {
     static int y1 = 0, y2 = 0, x[26], n = 12;
-    int y0;
-
-    x[0] = x[n + 13] = data;
-    y0 = (y1 << 1) - y2 + x[n] - (x[n + 6] << 1) + x[n + 12];
-    y2 = y1;
-    y1 = y0;
-    y0 >>= 5;
-
-    if(--n < 0)
-        n = 12;
-
-    return y0;
-
+    x[n] = x[n + 13] = data;
+    int y0 = (y1 << 1) - y2 + x[n] - (x[n + 6] << 1) + x[n + 12];
+    y2 = y1; y1 = y0;
+    if (--n < 0) n = 12;
+    return y0 >> 5;
 }
 
-int HighPassFilter(int data) {
-
+static int HighPassFilter(int data) {
     static int y1 = 0, x[66], n = 32;
-    int y0;
-
     x[n] = x[n + 33] = data;
-    y0 = y1 + x[n] - x[n + 32];
+    int y0 = y1 + x[n] - x[n + 32];
     y1 = y0;
-
-    if(--n < 0)
-        n = 32;
-
-    return(x[n + 16] - (y0 >> 5));
-
+    if (--n < 0) n = 32;
+    return x[n + 16] - (y0 >> 5);
 }
 
-int Derivative(int data){
-
-    int y, i;
+static int Derivative(int data) {
     static int x_d[4];
-
-    y = (data << 1) + x_d[3] - x_d[1] - (x_d[0] << 1);
-
-    y >>= 3;
-    for (i = 0; i < 3; i++)
-        x_d[i] = x_d[i + 1];
+    int y = (data << 1) + x_d[3] - x_d[1] - (x_d[0] << 1);
+    for (int i = 0; i < 3; i++) x_d[i] = x_d[i + 1];
     x_d[3] = data;
-
-    return(y);
-
+    return y >> 3;
 }
 
-
-int MovingWindowIntegral(int data){
-
+static int MovingWindowIntegral(int data) {
     static int x[32], i = 0;
-    static long sum = 0;
-    long ly;
-    int y;
-
-    if(++i == 32)
-        i = 0;
+    static int sum = 0;
     sum -= x[i];
     sum += data;
     x[i] = data;
-    ly = sum >> 5;
-
-    if(ly > 32400)
-        y = 32400;
-    else
-        y = (int) ly;
-
-    return(y);
-
+    if (++i == 32) i = 0;
+    return sum >> 5;
 }
-
-int PeakDetection(int prev_prev_data, int prev_data, int data){
-
-    int p = 0;
-
-    if((prev_data >= prev_prev_data) && (prev_data > data))
-        p = prev_data;
-    else if((prev_data <= prev_prev_data) && (prev_data < data))
-        p = prev_data;
-
-    return p;
-
-}
-
-
-int SignalPeak(int p, int sp){
-
-    return 0.125*p + 0.875*sp;
-
-}
-
-int SignalPeak2(int p, int sp){
-
-    return 0.25*p + 0.75*sp;
-
-}
-
-int Threshold1(int np, int sp){
-
-    return np + 0.25*(sp - np);
-}
-
-int Threshold2(int t1){
-
-    return 0.5*t1;
-
-}
-
-int RRAverage1(int rr){
-    static int x[8];
-    static int n = 0;
-    int rr_sum = 0;
-    int i;
-
-    x[n] = rr;
-
-    if(n++ > 7)
-        n = 0;
-
-    for(i = 0; i < 8; i++){
-        rr_sum += x[i];
-    }
-
-    return 0.125*rr_sum;
-
-}
-
-int RRAverage2(int rr, int rr_avg2){
-    static int x[8];
-    static int n = 0;
-    int rr_lim_sum = 0;
-    int i;
-
-    if((rr < 1.16*rr_avg2 ) && (rr > 0.92*rr_avg2 )){
-
-        x[n] = rr;
-
-        if(n++ > 7)
-        n = 0;
-
-    }
-
-    for(i = 0; i < 8; i++){
-        rr_lim_sum += x[i];
-    }
-
-    return 0.125*rr_lim_sum;
-
-}/*
- * PanTompkins.c
- *
- *  Created on: Jan 18, 2026
- *      Author: Gluscic
- */
-
-
