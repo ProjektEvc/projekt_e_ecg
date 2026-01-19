@@ -20,6 +20,7 @@
 #include "main.h"
 #include <string.h>
 #include "PanTompkins.h"
+#include "MAX30003.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -64,14 +65,9 @@ uint8_t rx_index = 0;
 
 volatile uint8_t streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
 volatile int data = 0;
-volatile uint8_t toggle = 1;
 volatile uint16_t mock_index = 0;
-
-
-volatile uint8_t timer_flag = 0;
-float sin_phase = 0.0;
-float phase_increment = 0;
 volatile int bpm = 0;
+volatile int ecg_data;
 
 
 
@@ -88,8 +84,7 @@ typedef struct __attribute__((packed)) {
 ECG_Packet_t myPacket;
 
 
-volatile uint8_t transfer_complete = 1; // Zastavica sa kojom ćemo gledat je li UART transfer  gotovo i mozemo li opet preći na SPI
-
+volatile uint8_t transfer_complete = 1; // Zastavica kojom kontroliramo SPI prijenos
 
 
 const uint16_t ecg_mock_data[1400] = {
@@ -350,14 +345,11 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  if (streaming)
 	    {
-	      // Pošalji paket
+	      if(transfer_complete == 0){
+	    	  transfer_complete = 1;
+	    	  ecg_data = MAX30003_ReadECG();
 
-	       // generate_ecg_sample();
-	      // send_packet();
-
-
-	      // Čekaj točno 5ms za 200 Hz
-	     //HAL_Delay(5);
+	      }
 	    }
 	    else
 	    {
@@ -689,6 +681,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 
 			      HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket), 5); //5 ms timeout
 
+			      transfer_complete = 0; //znaci da mozemo po sljedeci podatak sa SPI
+
 			   }
 
 	}
@@ -724,44 +718,6 @@ int generate_ecg_sample(void)
     return ecg_mock_data[mock_index];
 
 	}
-
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if(huart->Instance == UART4)
-	    {
-	        transfer_complete = 1;
-
-	        // Ako je streaming još uvijek aktivan, odmah pošalji sljedeći "osvježeni" paket
-	        if (streaming)
-	        {
-	            // Ovdje možeš malo promijeniti podatke da vidiš promjenu u Pythonu
-	            if(toggle){
-	            	data = data + 1;
-	            	myPacket.ecg_raw = data;
-	            	if(data == 0) toggle = 0;
-	            }else{
-	            	data = data - 1;
-	            	myPacket.ecg_raw = data;
-	            	if(data == 4096) toggle = 1;
-
-	            }
-
-	            HAL_UART_Transmit_DMA(&huart4, (uint8_t*)&myPacket, sizeof(myPacket));
-	        }
-
-    //Mi cemo trebat kontrolirat frekvenciju prikpljanja podatka (delay u sljedecoj liniji nema smisla), trebamo delay samo da simuliramo podatke koje bi dobivali kod grafičkog sučelja
-    //HAL_Delay(125);
-    //Isto tako, kod prikupljanja podataka bitno je da ne šaljemo podatke sa DMA->UART čim ih dobijemo, tj. slat ćemo podatke tek kad skupimo cijeli blok informacija
-    //Kada suspendamo program i dalje u python skirpti mozemo vidjet informacije (tu dolazi ona razlika "software" i "hardware"), DMA je nezavisni kontroler i UART je nazavisna periferija u odnosu
-    //na procesor koji rad isključivo kad nije suspendan, ono što je pisalo u memoriji i dalje piše u memoriji, te se dalje šalje u python skriptu preko COM porta
-	    }
-
-}
-
-
-
-
 
 
 
