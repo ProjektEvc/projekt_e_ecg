@@ -1,6 +1,8 @@
-../Core/Src/PanTompkins.c:22:6:PanTompkins_Init	1
-../Core/Src/PanTompkins.c:30:5:PanTompkins_Process	10
-../Core/Src/PanTompkins.c:101:12:LowPassFilter	2
-../Core/Src/PanTompkins.c:110:12:HighPassFilter	2
-../Core/Src/PanTompkins.c:119:12:Derivative	2
-../Core/Src/PanTompkins.c:127:12:MovingWindowIntegral	2
+../Core/Src/PanTompkins.c:41:6:PanTompkins_Init	4
+../Core/Src/PanTompkins.c:84:5:PanTompkins_Process	20
+../Core/Src/PanTompkins.c:212:13:UpdateRRAverage	7
+../Core/Src/PanTompkins.c:251:13:UpdateThresholds	3
+../Core/Src/PanTompkins.c:265:5:LowPassFilter	2
+../Core/Src/PanTompkins.c:275:5:HighPassFilter	2
+../Core/Src/PanTompkins.c:284:5:Derivative	2
+../Core/Src/PanTompkins.c:293:5:MovingWindowIntegral	3

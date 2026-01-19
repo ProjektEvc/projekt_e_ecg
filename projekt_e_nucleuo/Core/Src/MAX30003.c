@@ -22,7 +22,7 @@ int MAX30003_ReadECG(void)
 
     MAX30003_CS_Low();
 
-    HAL_SPI_TransmitReceive(&hspi1, tx_buf, rx_buf, 4, HAL_MAX_DELAY); //ubiti ne šaljemo ništa osim komande za FIFO read
+  //  HAL_SPI_TransmitReceive(&hspi1, tx_buf, rx_buf, 4, HAL_MAX_DELAY); //ubiti ne šaljemo ništa osim komande za FIFO read
 
     MAX30003_CS_High();
 
@@ -51,10 +51,10 @@ int MAX30003_ReadECG(void)
 
 static void MAX30003_CS_Low(void)
 {
-    HAL_GPIO_WritePin(MAX30003_CS_PORT, MAX30003_CS_PIN, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(MAX30003_CS_PORT, MAX30003_CS_PIN, GPIO_PIN_RESET);
 }
 
 static void MAX30003_CS_High(void)
 {
-    HAL_GPIO_WritePin(MAX30003_CS_PORT, MAX30003_CS_PIN, GPIO_PIN_SET);
+  //  HAL_GPIO_WritePin(MAX30003_CS_PORT, MAX30003_CS_PIN, GPIO_PIN_SET);
 }

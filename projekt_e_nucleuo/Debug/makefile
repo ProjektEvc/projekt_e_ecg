@@ -60,8 +60,8 @@ all: main-build
 main-build: projekt_e_nucleuo.elf secondary-outputs
 
 # Tool invocations
-projekt_e_nucleuo.elf projekt_e_nucleuo.map: $(OBJS) $(USER_OBJS) C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Gluscic\Projekt_ECG\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+projekt_e_nucleuo.elf projekt_e_nucleuo.map: $(OBJS) $(USER_OBJS) C:\Users\glusc\projekt_e_ecg\projekt_e_nucleuo\STM32G474RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "projekt_e_nucleuo.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\glusc\projekt_e_ecg\projekt_e_nucleuo\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="projekt_e_nucleuo.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
