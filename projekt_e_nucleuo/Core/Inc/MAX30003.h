@@ -17,14 +17,16 @@
  */
 #ifndef MAX30003_H
 #define MAX30003_H
+#include "main.h"
 
-#define MAX30003_CS_PORT GPIOA
-#define MAX30003_CS_PIN  GPIO_PIN_4
+#define MAX30003_CS_PORT GPIOC
+#define MAX30003_CS_PIN  GPIO_PIN_9
+#define HAL_MAX_DELAY 1000
 
 static void MAX30003_CS_Low(void);
 
 static void MAX30003_CS_High(void);
 
-int MAX30003_ReadECG(void);
+int MAX30003_ReadECG(SPI_HandleTypeDef *hspi);
 
 #endif

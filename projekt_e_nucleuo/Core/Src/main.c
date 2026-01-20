@@ -18,8 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <string.h>
-#include "MAX30003.h"
+#include "MAX30003.H"
 #include "PanTompkins.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -477,7 +476,10 @@ int main(void)
 	    {
 	      if(transfer_complete == 0){
 	    	  transfer_complete = 1;
-	    	  ecg_data = MAX30003_ReadECG();
+	    	  ecg_data = MAX30003_ReadECG(&hspi2);
+	    	  bpm_main = PanTompkins_Process(ecg_data);
+	    	  myPacket.bpm = bpm_main;
+	    	  HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket), 5); //5 ms timeout
 
 	      }
 	    }
@@ -718,6 +720,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -738,6 +743,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
@@ -803,10 +815,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
 			   {
 			     // Pošalji paket
 
-			      data = generate_ecg_sample();
-			      myPacket.ecg_raw = data;
-			      bpm_main = PanTompkins_Process(data);
-			      myPacket.bpm = bpm_main;
 
 			      HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket), 5); //5 ms timeout
 

@@ -8,10 +8,10 @@
 
 #include <stdint.h>
 
-int MAX30003_ReadECG(void)
+int MAX30003_ReadECG(SPI_HandleTypeDef *hspi)
 {
     uint8_t tx_buf[4];
-    uint8_t rx_buf[4];
+    uint8_t rx_buf[4] = {0,0,0,0};
     int ecg_sample;
 
     /* Read ECG FIFO command */
@@ -22,7 +22,7 @@ int MAX30003_ReadECG(void)
 
     MAX30003_CS_Low();
 
-  //  HAL_SPI_TransmitReceive(&hspi1, tx_buf, rx_buf, 4, HAL_MAX_DELAY); //ubiti ne šaljemo ništa osim komande za FIFO read
+    HAL_SPI_TransmitReceive(hspi, tx_buf, rx_buf, 4, HAL_MAX_DELAY); //ubiti ne šaljemo ništa osim komande za FIFO read
 
     MAX30003_CS_High();
 
