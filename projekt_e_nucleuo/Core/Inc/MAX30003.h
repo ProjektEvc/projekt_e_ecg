@@ -5,28 +5,19 @@
  *      Author: glusc
  */
 
-
-/*
- * Ako je CS (Chip select) low, onda je SPI aktivan
- *
- *
- *
- *
- *
- *
- */
 #ifndef MAX30003_H
 #define MAX30003_H
-#include "main.h"
 
+#include "main.h"
+#include "stm32g4xx_hal.h"
+
+// CS Pin Definition - adjust to match your hardware
 #define MAX30003_CS_PORT GPIOC
 #define MAX30003_CS_PIN  GPIO_PIN_9
-#define HAL_MAX_DELAY 1000
 
-static void MAX30003_CS_Low(void);
-
-static void MAX30003_CS_High(void);
 
 int MAX30003_ReadECG(SPI_HandleTypeDef *hspi);
+void MAX30003_CS_Low(void);
+void MAX30003_CS_High(void);
 
-#endif
+#endif /* MAX30003_H */
