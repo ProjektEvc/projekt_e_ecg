@@ -78,7 +78,7 @@ class DataMaster():
             
             self.msg = [ecg_raw]
             print(f"SelfRom: {self.RowMsg}")
-            print(f"SelfMsg: {self.msg}")
+            print(f"SelfMsg: {self.msg}, currBpm: {self.currBPM}")
 
         except struct.error as e:
                 print(f"Unpack error: {e}")

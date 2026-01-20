@@ -263,7 +263,7 @@ class ConnGUI():
                 bpm_label = self.chartMaster.ControlFrames[i][4] 
                 current_bpm = self.data.currBPM
 
-                if(current_bpm <= 100 & current_bpm >= 60):
+                if(current_bpm <= 100 and current_bpm >= 60):
                     bpm_label.config(text=str(self.data.currBPM), fg = "green")
                 else:
                     bpm_label.config(text=str(self.data.currBPM), fg = "red")
