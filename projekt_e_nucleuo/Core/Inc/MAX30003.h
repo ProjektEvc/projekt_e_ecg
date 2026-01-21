@@ -19,5 +19,7 @@
 int MAX30003_ReadECG(SPI_HandleTypeDef *hspi);
 void MAX30003_CS_Low(void);
 void MAX30003_CS_High(void);
+void MAX30003_Init(SPI_HandleTypeDef *hspi);
+void MAX30003_Write_Register(SPI_HandleTypeDef *hspi, uint8_t addr, uint32_t data);
 
 #endif /* MAX30003_H */

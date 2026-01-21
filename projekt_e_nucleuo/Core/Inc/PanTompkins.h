@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 
-int PanTompkins(int data);
+int PanTompkins_Process(int data);
 
 
 int LowPassFilter(int data);
