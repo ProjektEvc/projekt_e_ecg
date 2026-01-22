@@ -68,10 +68,11 @@ class DataMaster():
             
         try:
             header = self.RowMsg[0]
-            ecg_raw = struct.unpack('<I', self.RowMsg[1:5])[0]       # little-endian uint32
+            ecg_raw = struct.unpack('<i', self.RowMsg[1:5])[0]       # little-endian uint32
             self.currBPM = struct.unpack('<I', self.RowMsg[5:9])[0]
             footer = self.RowMsg[9]
-            if(ecg_raw > 4096):
+            print(f"ecg_raw prije filtra : {ecg_raw}")
+            if(ecg_raw > 100000 or ecg_raw < -1000000):
                 ecg_raw = self.prevECGdata
             else:
                 self.prevECGdata = ecg_raw
@@ -159,4 +160,4 @@ class DataMaster():
 
 
     def VoltageData(self,gui):
-        gui.chart.plot(gui.x, (gui.y / 4096) * 3.3, color = gui.color,  dash_capstyle = 'projecting', linewidth = 1)
+        gui.chart.plot(gui.x, ( gui.y / 4096) * 3.3, color = gui.color,  dash_capstyle = 'projecting', linewidth = 1)

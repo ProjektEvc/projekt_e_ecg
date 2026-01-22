@@ -4,8 +4,7 @@
 int MAX30003_ReadECG(SPI_HandleTypeDef *hspi)
 {
     uint8_t tx_buf[4] = {0,0,0,0};
-    volatile uint8_t rx_buf[4] = {0,0,0,0};
-    int ecg_sample;
+    uint8_t rx_buf[4] = {0,0,0,0};
 
 	/* Read ECG FIFO command */
 	tx_buf[0] = (0x21 << 1) | 1;   // INFO read
@@ -26,18 +25,21 @@ int MAX30003_ReadECG(SPI_HandleTypeDef *hspi)
      * [23:6] = ECG sample (18-bit signed)
      * [5:0]  = status bits
      */
-    ecg_sample = ((int32_t)rx_buf[1] << 16) |
-                 ((int32_t)rx_buf[2] << 8)  |
-                 ((int32_t)rx_buf[3]);
+	// 1. Combine the 3 bytes into a 24-bit unsigned container
+	uint32_t raw_data = ((uint32_t)rx_buf[1] << 16) |
+	                    ((uint32_t)rx_buf[2] << 8)  |
+	                     (uint32_t)rx_buf[3];
 
-    /* Remove status bits */
-    ecg_sample >>= 6;
+	// 2. Remove the 6 status bits (ETAG/PTAG)
+	// This moves the 18-bit sample into the range [17:0]
+	int32_t ecg_sample = (int32_t)(raw_data >> 6);
 
-    /* Sign extend 18-bit value */
-    if (ecg_sample & (1 << 17))
-    {
-        ecg_sample |= 0xFFFC0000;
-    }
+	// 3. Handle the Sign Bit (Bit 17)
+	// Since it's an 18-bit signed number, we must fill the
+	// remaining 14 bits of the 32-bit integer with 1s if negative.
+	if (ecg_sample & (1 << 17)) {
+	    ecg_sample |= 0xFFFC0000; // Apply sign extension mask
+	}
 
     return ecg_sample;
 }

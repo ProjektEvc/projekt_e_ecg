@@ -2,10 +2,10 @@
 #include <stdio.h>
 
 /* Configuration for 128 Hz sampling rate */
-#define FS 128
+#define FS 256
 #define BUF_SIZE 64
-#define REFRACTORY_SAMPLES 32  // ~250ms at 128 Hz
-#define SEARCH_BACK_SAMPLES 25 // ~195ms at 128 Hz (was 32 for 200Hz=160ms)
+#define REFRACTORY_SAMPLES 64  // ~250ms at 256 Hz
+#define SEARCH_BACK_SAMPLES 50 // ~195ms at 256 Hz (was 32 for 200Hz=160ms)
 
 /* Static variables */
 static int filtered[BUF_SIZE];
@@ -66,10 +66,10 @@ void PanTompkins_Init(void) {
     npkf = 100;
 
     // Initialize thresholds
-    thresholdi1 = 500;
-    thresholdi2 = 250;
-    thresholdf1 = 500;
-    thresholdf2 = 250;
+    thresholdi1 = 1000;
+    thresholdi2 = 500;
+    thresholdf1 = 1000;
+    thresholdf2 = 500;
 
     // Initialize RR parameters
     rr_avg = default_rr;
