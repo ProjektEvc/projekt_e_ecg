@@ -72,10 +72,10 @@ class DataMaster():
             self.currBPM = struct.unpack('<I', self.RowMsg[5:9])[0]
             footer = self.RowMsg[9]
             print(f"ecg_raw prije filtra : {ecg_raw}")
-            if(ecg_raw > 100000 or ecg_raw < -1000000):
+            if(ecg_raw > 1000000 or ecg_raw < -1000000):
                 ecg_raw = self.prevECGdata
             else:
-                self.prevECGdata = ecg_raw
+               self.prevECGdata = ecg_raw
             
             self.msg = [ecg_raw]
             print(f"SelfRom: {self.RowMsg}")

@@ -1,57 +1,81 @@
 #include "pantompkins.h"
 #include <stdio.h>
 
-/* Configuration for 128 Hz sampling rate */
-#define FS 256
-#define BUF_SIZE 64
-#define REFRACTORY_SAMPLES 64  // ~250ms at 256 Hz
-#define SEARCH_BACK_SAMPLES 50 // ~195ms at 256 Hz (was 32 for 200Hz=160ms)
+/* ==================== CONFIGURATION ==================== */
+#define FS 256                    // Sampling frequency in Hz
+#define BUF_SIZE 64              // Buffer size for filtered signal storage
+#define REFRACTORY_SAMPLES 90    // ~350ms at 256 Hz - Minimum time between QRS (prevents T-wave detection)
+#define SEARCH_BACK_SAMPLES 50   // ~195ms - How far back to search for R-peak in filtered signal
+#define MWI_WINDOW 38            // 150ms at 256 Hz - Moving window integration window
 
-/* Static variables */
+/* ==================== STATIC VARIABLES ==================== */
+
+// Filtered signal buffer (stores recent filtered ECG for R-peak search-back)
 static int filtered[BUF_SIZE];
-static int integrated[3];
 static int filtered_idx = 0;
 
-static int spki = 0, npki = 0;
-static int spkf = 0, npkf = 0;
-static int thresholdi1 = 0, thresholdi2 = 0;
-static int thresholdf1 = 0, thresholdf2 = 0;
+// Integration buffer (stores last 3 integrated values for peak detection)
+static int integrated[3] = {0, 0, 0};
 
-static int n_samples = 0;
-static int r_n_samples = -1;
-static int last_r_n_samples = -1;
+// Peak tracking for INTEGRATED signal (suffix 'i')
+static int spki = 0;  // Running estimate of Signal Peak
+static int npki = 0;  // Running estimate of Noise Peak
 
-static int rr_buffer[8] = {0};
-static int rr_limited_buffer[8] = {0};
-static int rr_idx = 0;
-static int rr_lim_idx = 0;
+// Peak tracking for FILTERED signal (suffix 'f')
+static int spkf = 0;  // Running estimate of Signal Peak
+static int npkf = 0;  // Running estimate of Noise Peak
 
-static int rr_avg = 0;
-static int rr_avg_limited = 0;
-static int rr_low_limit = 0;
-static int rr_high_limit = 0;
-static int rr_missed_limit = 0;
+// Adaptive thresholds
+static int thresholdi1 = 0;  // Primary threshold for integrated signal
+static int thresholdi2 = 0;  // Secondary threshold (for missed beat detection)
+static int thresholdf1 = 0;  // Primary threshold for filtered signal
+static int thresholdf2 = 0;  // Secondary threshold (for missed beat detection)
 
-static int bpm = 0;
+// Sample counting
+static int n_samples = 0;           // Total samples processed
+static int r_n_samples = -1;        // Sample number of current R-peak
+static int last_r_n_samples = -1;   // Sample number of previous R-peak
 
-/* Function prototypes */
+// RR interval tracking (RR = time between consecutive R-peaks)
+static int rr_buffer[8] = {0};         // Stores last 8 RR intervals (all beats)
+static int rr_limited_buffer[8] = {0}; // Stores last 8 "regular" RR intervals
+static int rr_idx = 0;                 // Index for rr_buffer
+static int rr_lim_idx = 0;             // Index for rr_limited_buffer
+
+// RR averages and limits
+static int rr_avg = 0;           // Average of all RR intervals
+static int rr_avg_limited = 0;   // Average of only "regular" RR intervals
+static int rr_low_limit = 0;     // Lower bound for regular beat (92% of average)
+static int rr_high_limit = 0;    // Upper bound for regular beat (116% of average)
+static int rr_missed_limit = 0;  // Threshold for missed beat detection (166% of average)
+
+static int bpm = 0;  // Current heart rate in beats per minute
+
+// Physiological RR limits (40-200 BPM for safety)
+#define PHYS_MIN_RR ((60 * FS) / 200)  // 200 BPM = 77 samples
+#define PHYS_MAX_RR ((60 * FS) / 40)   // 40 BPM = 384 samples
+
+/* ==================== FUNCTION PROTOTYPES ==================== */
 static void UpdateRRAverage(int rr);
 static void UpdateThresholds(void);
+static int IsLocalPeak(void);
 
+/* ==================== INITIALIZATION ==================== */
 void PanTompkins_Init(void) {
     int i;
 
-    // Initialize buffers
+    // Clear all buffers
     for (i = 0; i < BUF_SIZE; i++) filtered[i] = 0;
     for (i = 0; i < 3; i++) integrated[i] = 0;
 
-    // Initialize RR buffers with reasonable default (75 BPM at 128 Hz)
-    int default_rr = (60 * FS) / 75;  // ~102 samples
+    // Initialize RR buffers with reasonable default (72 BPM at 256 Hz)
+    int default_rr = (60 * FS) / 72;  // ~213 samples for 72 BPM
     for (i = 0; i < 8; i++) {
         rr_buffer[i] = default_rr;
         rr_limited_buffer[i] = default_rr;
     }
 
+    // Reset counters and indices
     n_samples = 0;
     r_n_samples = -1;
     last_r_n_samples = -1;
@@ -59,67 +83,89 @@ void PanTompkins_Init(void) {
     rr_idx = 0;
     rr_lim_idx = 0;
 
-    // Initialize peak values
-    spki = 1000;
-    npki = 100;
-    spkf = 1000;
-    npkf = 100;
+    // Initialize peak estimators - CRITICAL FIX: Start with more realistic values
+    spki = 500;   // Signal peak estimate for integrated signal
+    npki = 100;   // Noise peak estimate for integrated signal
+    spkf = 800;   // Signal peak estimate for filtered signal
+    npkf = 200;   // Noise peak estimate for filtered signal
 
-    // Initialize thresholds
-    thresholdi1 = 1000;
-    thresholdi2 = 500;
-    thresholdf1 = 1000;
-    thresholdf2 = 500;
+    // Initialize thresholds based on peak estimates
+    UpdateThresholds();
 
     // Initialize RR parameters
     rr_avg = default_rr;
     rr_avg_limited = default_rr;
+
+    // Set initial limits
     rr_low_limit = (default_rr * 92) / 100;
     rr_high_limit = (default_rr * 116) / 100;
     rr_missed_limit = (default_rr * 166) / 100;
 
-    bpm = 75;
+    bpm = 72;
 }
 
+/* ==================== HELPER FUNCTIONS ==================== */
+static int IsLocalPeak(void) {
+    return (integrated[1] > integrated[0] && integrated[1] > integrated[2]);
+}
+
+/* ==================== MAIN PROCESSING ==================== */
 int PanTompkins_Process(int raw_sample) {
     int sample, peaki, loc_max, loc_max_idx, idx, val, j;
     int rr;
+    static int last_detection_time = 0;
+
+    // Reset if no detection for too long (5 seconds) - more generous timeout
+    if (r_n_samples > 0 && (n_samples - r_n_samples) > (FS * 5)) {
+        // Reset to initial state
+        PanTompkins_Init();
+        last_detection_time = n_samples;
+    }
 
     n_samples++;
 
-    /* ---- Filter Chain ---- */
+    /* ==================== STEP 1: FILTERING ==================== */
     sample = LowPassFilter(raw_sample);
     sample = HighPassFilter(sample);
 
-    // Store filtered signal
+    // Store filtered signal for search-back
     filtered[filtered_idx] = sample;
     int current_f_idx = filtered_idx;
     filtered_idx = (filtered_idx + 1) % BUF_SIZE;
 
-    // Derivative, squaring, and integration
+    /* ==================== STEP 2-4: DERIVATIVE, SQUARE, INTEGRATE ==================== */
     sample = Derivative(sample);
     sample = sample * sample;
     sample = MovingWindowIntegral(sample);
 
-    /* ---- Update peak detection buffer ---- */
+    /* ==================== STEP 5: UPDATE PEAK DETECTION BUFFER ==================== */
     integrated[0] = integrated[1];
     integrated[1] = integrated[2];
     integrated[2] = sample;
 
-    /* ---- Peak Detection ---- */
-    // Check if middle sample is a peak
-    if (integrated[1] > integrated[0] && integrated[1] > integrated[2]) {
+    /* ==================== STEP 6: PEAK DETECTION ==================== */
+    if (IsLocalPeak()) {
         peaki = integrated[1];
 
-        // Check if it's above primary threshold
-        if (peaki >= thresholdi1) {
-            // Update signal peak for integrated signal
-            spki = (peaki >> 3) + (spki - (spki >> 3));
+        // REFRACTORY PERIOD CHECK
+        int time_since_last = n_samples - last_detection_time;
+        if (time_since_last < REFRACTORY_SAMPLES) {
+            // In refractory period - update noise peak
+            npki = (npki + (peaki >> 2)) >> 1;  // Faster adaptation for noise
+            UpdateThresholds();
+            return bpm;
+        }
 
-            // Search back in filtered signal for actual QRS location
+        // PRIMARY THRESHOLD CHECK
+        if (peaki >= thresholdi1) {
+            // Update signal peak
+            spki = (spki + (peaki >> 1)) >> 1;  // Faster adaptation for signal
+
+            /* --- SEARCH-BACK FOR R-PEAK --- */
             loc_max = 0;
             loc_max_idx = 0;
 
+            // Search for maximum in filtered signal
             for (j = 0; j < SEARCH_BACK_SAMPLES; j++) {
                 idx = (current_f_idx - j + BUF_SIZE) % BUF_SIZE;
                 val = filtered[idx];
@@ -131,34 +177,34 @@ int PanTompkins_Process(int raw_sample) {
                 }
             }
 
-            // Check if filtered peak is above threshold
+            // FILTERED SIGNAL THRESHOLD CHECK
             if (loc_max >= thresholdf1) {
-                // Update signal peak for filtered signal
-                spkf = (loc_max >> 3) + (spkf - (spkf >> 3));
+                spkf = (spkf + (loc_max >> 1)) >> 1;  // Faster adaptation
 
-                // Calculate R-peak position
+                // Record R-peak position
                 last_r_n_samples = r_n_samples;
-                r_n_samples = n_samples - loc_max_idx - 1;  // -1 because we detect on previous sample
+                r_n_samples = n_samples - loc_max_idx;
+                last_detection_time = n_samples;
 
-                // Calculate RR interval
+                /* --- CALCULATE RR INTERVAL --- */
                 if (last_r_n_samples > 0) {
                     rr = r_n_samples - last_r_n_samples;
 
-                    // Sanity check: RR should be at least refractory period
-                    if (rr >= REFRACTORY_SAMPLES) {
+                    // Validate RR interval
+                    if (rr >= REFRACTORY_SAMPLES && rr <= PHYS_MAX_RR) {
                         UpdateRRAverage(rr);
                     }
                 }
             } else {
-                // Filtered peak too low - update noise peak
-                npkf = (loc_max >> 3) + (npkf - (npkf >> 3));
+                // Filtered peak too low
+                npkf = (npkf + (loc_max >> 2)) >> 1;
             }
 
         } else if (peaki >= thresholdi2) {
-            // Check for missed beat (secondary threshold)
-            if (r_n_samples > 0 && (n_samples - r_n_samples) >= rr_missed_limit) {
-                // Update signal peak with reduced weight
-                spki = (peaki >> 2) + (spki - (spki >> 2));
+            // SECONDARY THRESHOLD - Check for missed beat
+            if (r_n_samples > 0 && time_since_last >= rr_missed_limit) {
+                // Possibly missed beat
+                spki = (spki + (peaki >> 2)) >> 1;
 
                 // Search back in filtered signal
                 loc_max = 0;
@@ -176,43 +222,53 @@ int PanTompkins_Process(int raw_sample) {
                 }
 
                 if (loc_max >= thresholdf2) {
-                    spkf = (loc_max >> 2) + (spkf - (spkf >> 2));
+                    spkf = (spkf + (loc_max >> 2)) >> 1;
 
                     last_r_n_samples = r_n_samples;
-                    r_n_samples = n_samples - loc_max_idx - 1;
+                    r_n_samples = n_samples - loc_max_idx;
+                    last_detection_time = n_samples;
 
                     if (last_r_n_samples > 0) {
                         rr = r_n_samples - last_r_n_samples;
-                        if (rr >= REFRACTORY_SAMPLES) {
+                        if (rr >= REFRACTORY_SAMPLES && rr <= PHYS_MAX_RR) {
                             UpdateRRAverage(rr);
                         }
                     }
                 }
             } else {
-                // Not a missed beat - update noise peak
-                npki = (peaki >> 3) + (npki - (npki >> 3));
+                npki = (npki + (peaki >> 2)) >> 1;
             }
         } else {
-            // Below both thresholds - update noise peak
-            npki = (peaki >> 3) + (npki - (npki >> 3));
+            // Below both thresholds - noise
+            npki = (npki + (peaki >> 2)) >> 1;
         }
 
-        // Update thresholds after every peak
         UpdateThresholds();
     }
 
-    // Calculate BPM from limited average
+    /* ==================== STEP 7: CALCULATE BPM ==================== */
     if (rr_avg_limited > 0) {
         bpm = (60 * FS) / rr_avg_limited;
+
+        // Clamp to realistic range
+        if (bpm < 40) bpm = 40;
+        if (bpm > 200) bpm = 200;
     }
 
     return bpm;
 }
 
+/* ==================== RR INTERVAL AVERAGING ==================== */
 static void UpdateRRAverage(int rr) {
-    int i, sum, sum_limited;
+    int i, sum;
+    static int beat_count = 0;
 
-    // Update RR average (all beats)
+    // Validate RR interval
+    if (rr < PHYS_MIN_RR || rr > PHYS_MAX_RR) {
+        return;  // Ignore physiologically impossible values
+    }
+
+    /* ---------- UPDATE ALL-RR AVERAGE ---------- */
     rr_buffer[rr_idx] = rr;
     rr_idx = (rr_idx + 1) % 8;
 
@@ -220,86 +276,170 @@ static void UpdateRRAverage(int rr) {
     for (i = 0; i < 8; i++) {
         sum += rr_buffer[i];
     }
-    rr_avg = sum >> 3;
+    rr_avg = sum / 8;
 
-    // Update RR limited average (only regular beats within 92%-116%)
-    if (rr_avg_limited == 0) {
-        rr_avg_limited = rr;
-        for (i = 0; i < 8; i++) {
-            rr_limited_buffer[i] = rr;
-        }
+    beat_count++;
+
+    /* ---------- UPDATE LIMITED RR AVERAGE ---------- */
+    if (beat_count <= 4) {
+        // Learning phase: accept first few beats
+        rr_limited_buffer[rr_lim_idx] = rr;
     } else {
-        // Check if RR is within acceptable range
-        if (rr >= rr_low_limit && rr <= rr_high_limit) {
-            rr_limited_buffer[rr_lim_idx] = rr;
-            rr_lim_idx = (rr_lim_idx + 1) % 8;
+        // Check if RR is within expected range of current average
+        int lower_bound = (rr_avg_limited * 70) / 100;  // 70% of average
+        int upper_bound = (rr_avg_limited * 130) / 100; // 130% of average
 
-            sum_limited = 0;
-            for (i = 0; i < 8; i++) {
-                sum_limited += rr_limited_buffer[i];
-            }
-            rr_avg_limited = sum_limited >> 3;
+        if (rr >= lower_bound && rr <= upper_bound) {
+            rr_limited_buffer[rr_lim_idx] = rr;
+        } else {
+            // Use average instead of outlier
+            rr_limited_buffer[rr_lim_idx] = rr_avg_limited;
         }
     }
 
-    // Update limits based on limited average
-    rr_low_limit = (rr_avg_limited * 92) / 100;
-    rr_high_limit = (rr_avg_limited * 116) / 100;
-    rr_missed_limit = (rr_avg_limited * 166) / 100;
+    rr_lim_idx = (rr_lim_idx + 1) % 8;
+
+    /* ---------- RECALCULATE LIMITED AVERAGE ---------- */
+    sum = 0;
+    for (i = 0; i < 8; i++) {
+        sum += rr_limited_buffer[i];
+    }
+    rr_avg_limited = sum / 8;
+
+    /* ---------- UPDATE LIMITS ---------- */
+    rr_low_limit = (rr_avg_limited * 85) / 100;    // 85% for tighter bounds
+    rr_high_limit = (rr_avg_limited * 115) / 100;  // 115% for tighter bounds
+    rr_missed_limit = (rr_avg_limited * 150) / 100; // 150% for missed beats
 }
 
+/* ==================== THRESHOLD UPDATING ==================== */
 static void UpdateThresholds(void) {
-    // Prevent noise peaks from growing too large
-    if (npki > spki) npki = spki;
-    if (npkf > spkf) npkf = spkf;
+    // Ensure noise doesn't exceed signal
+    if (npki > spki) npki = spki >> 1;
+    if (npkf > spkf) npkf = spkf >> 1;
 
-    thresholdi1 = npki + ((spki - npki) >> 2);
+    // Ensure minimum thresholds to prevent false negatives
+    int min_threshold_i = 50;
+    int min_threshold_f = 100;
+
+    // Primary threshold = noise + 0.375 * (signal - noise)
+    thresholdi1 = npki + ((spki - npki) * 3 / 8);
+    thresholdf1 = npkf + ((spkf - npkf) * 3 / 8);
+
+    if (thresholdi1 < min_threshold_i) thresholdi1 = min_threshold_i;
+    if (thresholdf1 < min_threshold_f) thresholdf1 = min_threshold_f;
+
+    // Secondary threshold = 0.5 * primary
     thresholdi2 = thresholdi1 >> 1;
-
-    thresholdf1 = npkf + ((spkf - npkf) >> 2);
     thresholdf2 = thresholdf1 >> 1;
 }
 
-/* ================= Filters ================= */
+/* ==================== VISUALIZATION FUNCTIONS ==================== */
+int showGraphIntegralWindow(int ecg_data) {
+    int filtered = HighPassFilter(LowPassFilter(ecg_data));
+    int deriv = Derivative(filtered);
+    long squared = (long)deriv * deriv;
+    return MovingWindowIntegral((int)squared) / 10;
+}
 
+int showGraphSquared(int ecg_data) {
+    int var = LowPassFilter(ecg_data);
+    var = HighPassFilter(var);
+    var = Derivative(var);
+    var = var * var;
+    return var / 1000;
+}
+
+int filter(int data) {
+    return HighPassFilter(LowPassFilter(data));
+}
+
+/* ==================== DEBUG FUNCTIONS ==================== */
+int PanTompkins_GetLastRR(void) {
+    if (last_r_n_samples > 0 && r_n_samples > 0) {
+        return r_n_samples - last_r_n_samples;
+    }
+    return 0;
+}
+
+void PanTompkins_GetDebugInfo(int *rr_avg_out, int *rr_lim_out, int *last_rr_out) {
+    if (rr_avg_out) *rr_avg_out = rr_avg;
+    if (rr_lim_out) *rr_lim_out = rr_avg_limited;
+    if (last_rr_out) {
+        if (last_r_n_samples > 0 && r_n_samples > 0) {
+            *last_rr_out = r_n_samples - last_r_n_samples;
+        } else {
+            *last_rr_out = 0;
+        }
+    }
+}
+
+void PanTompkins_ResetRR(void) {
+    PanTompkins_Init();
+}
+
+/* ==================== FILTER IMPLEMENTATIONS ==================== */
 int LowPassFilter(int data) {
-    static int y1 = 0, y2 = 0, x[26], n = 12;
-    x[n] = x[n + 13] = data;
-    int y0 = (y1 << 1) - y2 + x[n] - (x[n + 6] << 1) + x[n + 12];
+    static int y1 = 0, y2 = 0;
+    static int x[13];
+    static int n = 0;
+
+    x[n] = data;
+
+    int x0 = x[n];
+    int x6 = x[(n + 13 - 6) % 13];
+    int x12 = x[(n + 13 - 12) % 13];
+
+    int y0 = (y1 << 1) - y2 + x0 - (x6 << 1) + x12;
+
     y2 = y1;
     y1 = y0;
-    if (--n < 0) n = 12;
+    n = (n + 1) % 13;
+
     return y0 >> 5;
 }
 
 int HighPassFilter(int data) {
-    static int y1 = 0, x[66], n = 32;
-    x[n] = x[n + 33] = data;
-    int y0 = y1 + x[n] - x[n + 32];
+    static int y1 = 0;
+    static int x[33];
+    static int n = 0;
+
+    x[n] = data;
+
+    int x0 = x[n];
+    int x16 = x[(n + 33 - 16) % 33];
+    int x32 = x[(n + 33 - 32) % 33];
+
+    int y0 = y1 + x0 - x32;
     y1 = y0;
-    if (--n < 0) n = 32;
-    return x[n + 16] - (y0 >> 5);
+    n = (n + 1) % 33;
+
+    return x16 - (y0 >> 5);
 }
 
 int Derivative(int data) {
-    static int x_d[4];
-    int y = (data << 1) + x_d[3] - x_d[1] - (x_d[0] << 1);
-    int i;
-    for (i = 0; i < 3; i++) x_d[i] = x_d[i + 1];
-    x_d[3] = data;
-    return y >> 3;
+    static int x[5] = {0};
+
+    int y = ((data << 1) + x[0] - x[2] - (x[3] << 1)) >> 3;
+
+    x[3] = x[2];
+    x[2] = x[1];
+    x[1] = x[0];
+    x[0] = data;
+
+    return y;
 }
 
 int MovingWindowIntegral(int data) {
-    static int x[32], i = 0;
+    static int x[MWI_WINDOW] = {0};
+    static int i = 0;
     static long sum = 0;
 
     sum -= x[i];
     sum += data;
     x[i] = data;
-    if (++i == 32) i = 0;
 
-    long ly = sum >> 5;
-    if (ly > 32400) return 32400;
-    return (int)ly;
+    i = (i + 1) % MWI_WINDOW;
+
+    return (int)(sum / MWI_WINDOW);
 }

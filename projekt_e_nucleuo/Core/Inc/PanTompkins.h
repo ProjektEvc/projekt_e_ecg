@@ -47,4 +47,6 @@ int RRAverage1(int rr);
 
 int RRAverage2(int rr, int rr_avg2);
 
+int filter(int data);
+
 #endif /* PANTOMPKINS_H_ */
