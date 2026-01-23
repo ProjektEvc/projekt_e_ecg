@@ -2,6 +2,11 @@ from tkinter import*
 from tkinter import messagebox
 import threading
 
+#potrebno za spremanje podatka
+import os
+from tkinter import filedialog
+
+
 
 #treba pip install matplotlib
 import matplotlib
@@ -131,7 +136,7 @@ class ComGui():  #Klasa za komunikaciju sa uC
 
 
                 #pokazi manager za kanale   
-                self.conn = ConnGUI(self.root, self.serial, self.data)  
+                self.conn = ConnGUI(self.root, self.serial, self.data)  #u ocom trenutku se povećava prozor koji imamo, u __init__ klase se poziva openGUIopen
 
 
                 #u funkciju SerialSync šaljemo ComGui koji ima serial, datamaster i root objekte,  daemon samo zači da će Thread ako ima problem zatvoriti sve na silu
@@ -197,6 +202,14 @@ class ConnGUI():
         self.btn_add_chart = Button(self.frame, text = "+", state = "disabled", width = 5, bg = "white", fg = "#098577", command = self.new_chart)
         self.btn_remove_chart = Button(self.frame, text = "-", state = "disabled", width = 5, bg = "white", fg = "#CC252C", command = self.remove_chart)
 
+
+
+        #Gumb za postavljenje lokacije za spremanje podataka
+        self.btn_save_location = Button(self.frame, text="Choose folder", width=10, state="disabled", command=self.ChooseSaveLocation, bg="white", fg = "yellow")
+        
+        #Naljepnica koja pokazuje trenutačno mjesto za spremanje podataka
+        self.save_location_label = Label(self.frame, text="Save to: Current folder", bg="white", fg="gray", anchor="w", width=25)
+
         #IntVar je objekt koji mora postojat unutar Checkbutton-a koji će pamtit je li checkbutton stisnut ili nije
         self.save = False
         self.SaveVar = IntVar()
@@ -214,8 +227,8 @@ class ConnGUI():
     #ova funkcija će raditi slično što i publish()
     def ConnGUIOpen(self):
 
-        self.root.geometry("800x120")
-        self.frame.grid(row = 0, column = 4,rowspan = 3, columnspan = 5, padx = 5, pady = 5)
+        self.root.geometry("1000x120")
+        self.frame.grid(row = 0, column = 4,rowspan = 3, columnspan = 6, padx = 5, pady = 5)
         
         self.sync_label.grid(column=1, row=1)
         self.sync_status.grid(column=2, row=1)
@@ -230,6 +243,10 @@ class ConnGUI():
         self.btn_remove_chart.grid(column = 5, row = 1, padx = self.padx)
 
         self.save_check.grid(column = 4, row = 2, columnspan = 2)
+
+
+        self.btn_save_location.grid(column=6, row=1, padx=5, pady=5)
+        self.save_location_label.grid(column=6, row=2,columnspan = 2, padx=5, pady=5, sticky=W)
 
 
     def ConnGUIClose(self):
@@ -251,7 +268,16 @@ class ConnGUI():
         self.serial.t1 = threading.Thread(target = self.serial.SerialDataStream, args = (self,), daemon = True)
         self.serial.t1.start()
 
+    def ChooseSaveLocation(self):
+        #Otvara prozor za odabir gdje stavljamo podatke
+        directory = filedialog.askdirectory(title="Choose Save Location")
+        if directory:
+            self.data.save_directory = directory
 
+            self.data.FileNameFunc()
+            short_path = os.path.basename(directory) if len(directory) > 25 else directory
+            self.save_location_label["text"] = f"Save to: .../{short_path}"
+            self.save_location_label["fg"] = "green"
 
 
     def UpdateChart(self):
@@ -400,17 +426,17 @@ class DisGUI():
         self.totalframes = len(self.frames) -1 
 
         if self.totalframes > 0:
-            RootW = 800*2  #Širina Root-a
+            RootW = 1000*2  #Širina Root-a
 
         else:
-            RootW = 800
+            RootW = 1000
 
 
         if self.totalframes+1 == 0:
             RootH = 120
 
         else:
-            RootH = 120 + 400 * (int(self.totalframes/2) +1)
+            RootH = 120 + 450 * (int(self.totalframes/2) +1)
         self.root.geometry(f"{RootW}x{RootH}")
         
 

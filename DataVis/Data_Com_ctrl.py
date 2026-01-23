@@ -3,6 +3,8 @@ import time
 import numpy as np #treba pip install numpy
 from datetime import datetime
 import csv
+import os
+import threading
 
 class DataMaster():
     def __init__(self):
@@ -22,6 +24,12 @@ class DataMaster():
         self.YData = [] #vrijednosti
 
         self.DisplayTimeRange = 5 #5 sekundi je XData dugačak
+
+        self.save_directory = os.getcwd() #default-na vrijednost za spremanje podatka -> ovo daje working directory
+
+        self.SaveBuffer = [] #Ovo je lista u koju primamo podatke pa ih tek onda šaljemo, bez ovog bi trebali otvorit file -> zapisat podatak -> zavotvorit file (jako sporo)
+        self.SaveBufferSize = 1000
+        self.lock = threading.Lock() # Zaštita podataka, spavajuci thread koji se budi samo kad treba ispraznit buffer
 
 
         self.FunctionMaster = {
@@ -55,15 +63,39 @@ class DataMaster():
 
     def FileNameFunc(self):
         now = datetime.now()
-        self.filename = now.strftime("%Y%m%d%H%M%S") + ".csv" 
+        filename = now.strftime("%Y%m%d%H%M%S") + ".csv" 
 
-    def SaveData(self, gui):
+        self.filename = os.path.join(self.save_directory, filename) #spajamo ime timestampa sa putanjom
+
+    def SaveData(self, gui): 
         data = [elt for elt in self.msg] #u self.msg se nalaze podaci primljeni preko uarta
         data.insert(0, self.XData[len(self.XData) - 1]) #na početak dodamo zadnji trenutak vremena za podatke
-        if gui.save:
-            with open(self.filename, 'a', newline = '') as f:
-                data_wrtier = csv.writer(f)
-                data_wrtier.writerow(data)
+        
+        with self.lock:
+        
+            self.SaveBuffer.append(data)
+
+            if(len(self.SaveBuffer) >= self.SaveBufferSize):
+
+                if len(self.SaveBuffer) >= 500:
+                    # Uzmi podatke i isprazni buffer odmah
+                    data_to_write = list(self.SaveBuffer)
+                    self.SaveBuffer.clear()
+                    
+                    # Pokreni pisanje u pozadini da ne kočiš UART
+                    t = threading.Thread(target=self.WriteToFile, args=(data_to_write,), daemon=True)
+                    t.start()
+
+
+    def WriteToFile(self, data):
+        # Ova funkcija se izvršava u svom svijetu i ne smeta grafu
+        try:
+            with open(self.filename, 'a', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerows(data)
+        except Exception as e:
+            print(f"Greška pri zapisivanju: {e}")
+
 
 
     def DecodeMsg(self):

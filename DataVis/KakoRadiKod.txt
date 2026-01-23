@@ -1,0 +1,20 @@
+Save fileova
+Čim smo završili handshaking sa mikrokontrolerom (sync_ok je prošao) samo se poziva FileNameFunc() i potencijali .csv file dobiva ime u formatu (godina/mjesec/dan/sat/minuta/sekunda + csv)
+Kada se klikne checkbox na SaveData u aplikaciji, poziva se funkcija save_data() u gui_masteru. Ta funkcija označi da je self.save = True ili self.save = False
+zbog čega se ili spremaju ili se ne spremaju podaci. Samo po sebi ovdje ne kreće spremanje podataka.
+Spremanje kreće u SerialDataStream funkciji, ako je stream aktivan i ako je self.save = True, poziva se funckija SaveData. Thread možete zamislit ko "pozadinski proces" koji radi paralelno svemu drugom,
+da nema threada bil obi moguće da python skripta malo čita podatke malo ih sprema i malo održava gui (vrlo vjerovatno nebi to mogla napraviti sve odjednom, pa
+nam treba neki "paralelni proces za svako od navedenih procesa").  
+threading.Thread(target = gui.data.SaveData, args = (gui,), daemon = True)
+target govori u kojoj funckiji "zovemo" taj paralelni proces (thread). args = (self,) govori Thread-u što ima na "raspolaganju", tj. od kuda uzima podatke, ovaj zarez je tu jer 
+funkcija zahtjeva tuple (tuple je lista koja ne mijenja duljinu, a u Pythonu to znaci (self, ) da imamo listu koja sadrži samo self i više ništa)
+Daemon = True znaci da ako bi se main Gui zatvorio ovaj thread se mora na silu zatvoriti (ovo je sigurnije). Kad bi bilo Daemon = False i kad bi se main gui zatvorio,
+mi nebi vidli da se bilo što događa, no npr. u task manageru bi mogli vidjeti da se neki Python proces i dalje vrti (to bi bio taj ne zatvoreni thread)
+Pošto je target od threada SaveData, znači da se tamo događa spremanje podataka. 
+def SaveData(self, gui): 
+        data = [elt for elt in self.msg] #u self.msg se nalaze podaci primljeni preko uarta
+        data.insert(0, self.XData[len(self.XData) - 1]) #na početak dodamo trenutak vremena za podatke
+        if gui.save:
+            with open(self.filename, 'a', newline = '') as f: #otvaramo file f sa imenom filename, 'a' = append, newline = '' na kraj retka stavljamo \n
+                data_wrtier = csv.writer(f) #data_wrtier je objekt kojim pišemo u file f
+                data_wrtier.writerow(data)  

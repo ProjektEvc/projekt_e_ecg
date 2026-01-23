@@ -80,6 +80,7 @@ class SerialControl():
                     gui.conn.save_check["state"] = "active"
                     gui.conn.sync_status["fg"] = "green"
                     gui.conn.sync_status["text"] = "OK"
+                    gui.conn.btn_save_location["state"] = "active"
                     gui.conn.ch_status["text"] = "1"  #za sad imamo jedan kanal
                     gui.data.SynchChannel = 1 #za sad imamo jedan kanal #ovo dvoje bi inace bilo int(gui.data.msg[1])
                     gui.data.GenChannels() #stvorit cemo listu od jednog kanala
@@ -89,9 +90,6 @@ class SerialControl():
                     gui.data.FileNameFunc()
 
                     self.threading = False
-  
-                print(gui.data.RowMsg)
-                print("tu smo")
 
                 if(self.threading == False):
                     break
@@ -157,8 +155,9 @@ class SerialControl():
                            # print(f"X Len: {len(gui.data.XData)}, Xstart:{gui.data.XData[0]}  Xend : {gui.data.XData[len(gui.data.XData)-1]}, Xrange: {gui.data.XData[len(gui.data.XData)-1] - gui.data.XData[0]} Ydata len: {len(gui.data.YData[0])} Yval: : {Ysam} ")
                             
                             if gui.save:
-                                t1 = threading.Thread(target = gui.data.SaveData, args = (gui,), daemon = True)
-                                t1.start()
+                            #    t1 = threading.Thread(target = gui.data.SaveData, args = (gui,), daemon = True)
+                            #    t1.start()
+                                gui.data.SaveData(gui)
             except Exception as e:
                 print(f"Greška u streamu: {e}")
 
