@@ -1,6 +1,8 @@
 import struct
 import time
 import numpy as np #treba pip install numpy
+from datetime import datetime
+import csv
 
 class DataMaster():
     def __init__(self):
@@ -50,6 +52,18 @@ class DataMaster():
             'Ch6' : 'black',
             'Ch7' : 'white'
         }
+
+    def FileNameFunc(self):
+        now = datetime.now()
+        self.filename = now.strftime("%Y%m%d%H%M%S") + ".csv" 
+
+    def SaveData(self, gui):
+        data = [elt for elt in self.msg] #u self.msg se nalaze podaci primljeni preko uarta
+        data.insert(0, self.XData[len(self.XData) - 1]) #na početak dodamo zadnji trenutak vremena za podatke
+        if gui.save:
+            with open(self.filename, 'a', newline = '') as f:
+                data_wrtier = csv.writer(f)
+                data_wrtier.writerow(data)
 
 
     def DecodeMsg(self):
@@ -156,7 +170,7 @@ class DataMaster():
 
 
     def RowData(self,gui):
-        gui.chart.plot(gui.x, gui.y, color = gui.color,  dash_capstyle = 'projecting', linewidth = 1)
+        gui.chart.plot(gui.x, -1 *gui.y, color = gui.color,  dash_capstyle = 'projecting', linewidth = 1)
 
 
     def VoltageData(self,gui):

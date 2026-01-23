@@ -139,12 +139,12 @@ class ComGui():  #Klasa za komunikaciju sa uC
                 self.serial.t1.start()
 
             else:
-                ErrorMsg = f"Failure to establih UART connection usgin seld.clicked_com.get()"
+                ErrorMsg = f"Failure to establih UART connection usgin self.clicked_com.get()"
                 messagebox.showerror("showerror", ErrorMsg)    
 
         else:
             self.serial.threading = False 
-
+            self.conn.save = False
             try:
                 while len(self.conn.chartMaster.frames) > 0:
                     self.conn.kill_chart()
@@ -171,6 +171,8 @@ class ConnGUI():
         self.root = root #root je glavni root
         self.serial = serial #serial je serial iz Serial_Com_ctrl, u main programu šaljemo MySerial = SerialControl() u ComGui, a ComGui šalje serial u ConGui
         self.data = data
+        self.save = False
+
         self.frame = LabelFrame(root, text = "Connection Manager", padx = 5, pady = 5, bg = "white", width = 60)
         
         #Labela ..Sync.. će biti narančasta sve dok se uC nije upario sa našom komunikacijom 
@@ -337,8 +339,11 @@ class ConnGUI():
             pass
 
 
-    def save_data(self):
-        pass
+    def save_data(self): #nakon što kliknemo checkbox odlazimo u ovu funkciju
+        if self.save:
+            self.save = False
+        else:
+            self.save = True
 
 
 

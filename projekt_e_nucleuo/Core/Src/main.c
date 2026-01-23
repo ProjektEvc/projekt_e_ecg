@@ -181,8 +181,8 @@ int main(void)
 	    {
 	      if(transfer_complete == 0){
 	    	  transfer_complete = 1;
-	   	  ecg_data = MAX30003_ReadECG(&hspi2);
-	    	//  ecg_data = generate_ecg_sample();
+	//   	  ecg_data = MAX30003_ReadECG(&hspi2);
+	    	  ecg_data = generate_ecg_sample();
 	   	myPacket.ecg_raw = ecg_data;
 	    	  bpm_main = PanTompkins_Process(ecg_data);
 	    	  myPacket.bpm = bpm_main;

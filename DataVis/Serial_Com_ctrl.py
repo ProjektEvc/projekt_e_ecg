@@ -1,6 +1,7 @@
 import serial.tools.list_ports
 import time 
 import struct
+import threading
 
 class SerialControl():
     def __init__(self):
@@ -66,7 +67,7 @@ class SerialControl():
                 gui.conn.sync_status["fg" ] = "orange"
                 gui.data.RowMsg = self.ser.read(1) #čita jedan znak i traži !
 
-                gui.data.DecodeMsg() #it DataMaster klase korisitmo funkciju decodemsg
+                gui.data.DecodeMsg() #iz DataMaster klase korisitmo funkciju decodemsg
                
                
                 if gui.data.sync_ok in gui.data.msg[0]: #ako je istina to znači da je mikrokontroler uspješno primio i vratio poruku nazad
@@ -84,6 +85,8 @@ class SerialControl():
                     gui.data.GenChannels() #stvorit cemo listu od jednog kanala
 
                     gui.data.buildYdata()
+
+                    gui.data.FileNameFunc()
 
                     self.threading = False
   
@@ -153,6 +156,9 @@ class SerialControl():
                             gui.data.AdjustData() #sluzi da poravnamo X os
                            # print(f"X Len: {len(gui.data.XData)}, Xstart:{gui.data.XData[0]}  Xend : {gui.data.XData[len(gui.data.XData)-1]}, Xrange: {gui.data.XData[len(gui.data.XData)-1] - gui.data.XData[0]} Ydata len: {len(gui.data.YData[0])} Yval: : {Ysam} ")
                             
+                            if gui.save:
+                                t1 = threading.Thread(target = gui.data.SaveData, args = (gui,), daemon = True)
+                                t1.start()
             except Exception as e:
                 print(f"Greška u streamu: {e}")
 
