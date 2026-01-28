@@ -1,0 +1,894 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2025 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "MAX30003.H"
+#include "PanTompkins.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+//parametri sinusa
+
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+SPI_HandleTypeDef hspi2;
+DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi2_tx;
+
+TIM_HandleTypeDef htim2;
+
+UART_HandleTypeDef huart4;
+DMA_HandleTypeDef hdma_uart4_rx;
+DMA_HandleTypeDef hdma_uart4_tx;
+
+/* USER CODE BEGIN PV */
+
+uint8_t rx_byte;
+char rx_buffer[32];
+uint8_t rx_index = 0;
+
+
+volatile uint8_t streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+volatile int data = 0;
+volatile uint16_t mock_index = 0;
+volatile int bpm_main = 0;
+volatile int ecg_data;
+
+
+
+typedef struct __attribute__((packed)) {
+    uint8_t  header;    // 0xAA
+    int ecg_raw;   // 4 bytes (MAX30003 gives 24-bit, we store in 32
+    int bpm;
+    uint8_t  footer;    // 0xZZ
+} ECG_Packet_t;
+//__attribute__ govori kompajleru "sada  cu ti dat neku iznimnu nardebu", packed znači da se adrese u strukturi koju pošaljemo u
+//mikrokontroler neće poravnati na adrese djeljive sa 4, već čemo ih "stisnut skupa
+
+
+ECG_Packet_t myPacket;
+
+
+volatile uint8_t transfer_complete = 1; // Zastavica kojom kontroliramo SPI prijenos
+
+
+const uint16_t ecg_mock_data[3500] = {
+    // Baseline
+    2048, 2050, 2052, 2054, 2056, 2058, 2060, 2062, 2064, 2066,
+    2068, 2070, 2072, 2074, 2076, 2078, 2080, 2082, 2084, 2086,
+    2088, 2090, 2092, 2094, 2096, 2098, 2100, 2102, 2104, 2106,
+    2108, 2110, 2112, 2114, 2116, 2118, 2120, 2122, 2124, 2126,
+    2128, 2130, 2132, 2134, 2136, 2138, 2140, 2142, 2144, 2146,
+
+    // ========== HEARTBEAT 1 ==========
+    // P-wave starts
+    2148, 2155, 2165, 2178, 2195, 2215, 2238, 2263, 2288, 2312,
+    2334, 2352, 2366, 2375, 2380, 2382, 2380, 2375, 2366, 2354,
+    2340, 2324, 2307, 2289, 2271, 2253, 2236, 2220, 2205, 2192,
+    2180, 2170, 2162, 2156, 2151, 2148, 2146, 2145, 2144, 2144,
+    // PR segment
+    2144, 2144, 2144, 2144, 2144, 2144, 2144, 2144, 2144, 2144,
+    2144, 2144, 2144, 2144, 2144, 2144, 2144, 2144, 2144, 2144,
+    2144, 2144, 2144, 2144, 2144, 2144, 2144, 2144, 2144, 2144,
+    // Q-wave
+    2144, 2140, 2132, 2120, 2105, 2088, 2070, 2052, 2035, 2020,
+    2008, 2000, 1996, 1996, 2000, 2008, 2020, 2036, 2056, 2080,
+    // R-wave
+    2108, 2142, 2182, 2230, 2286, 2350, 2422, 2502, 2588, 2678,
+    2770, 2862, 2952, 3038, 3118, 3190, 3252, 3304, 3344, 3372,
+    3388, 3392, 3384, 3366, 3338, 3302, 3258, 3208, 3154, 3096,
+    3036, 2974, 2912, 2850, 2790, 2732, 2678, 2628, 2582, 2542,
+    2508, 2480, 2458, 2442, 2432, 2428, 2430, 2438, 2450, 2466,
+    // S-wave
+    2484, 2502, 2518, 2532, 2542, 2548, 2550, 2548, 2542, 2532,
+    2518, 2500, 2478, 2452, 2422, 2388, 2350, 2308, 2264, 2218,
+    2170, 2122, 2074, 2028, 1984, 1944, 1908, 1878, 1854, 1836,
+    1826, 1824, 1830, 1844, 1866, 1896, 1932, 1974, 2020, 2068,
+    // ST segment
+    2116, 2162, 2204, 2242, 2274, 2300, 2320, 2334, 2342, 2346,
+    2346, 2342, 2336, 2328, 2318, 2308, 2296, 2284, 2272, 2260,
+    2248, 2238, 2228, 2220, 2212, 2206, 2202, 2198, 2196, 2196,
+    2196, 2198, 2200, 2202, 2206, 2210, 2214, 2218, 2222, 2226,
+    // T-wave
+    2230, 2235, 2242, 2252, 2265, 2282, 2303, 2328, 2357, 2389,
+    2424, 2461, 2498, 2536, 2573, 2608, 2641, 2671, 2697, 2719,
+    2737, 2750, 2758, 2762, 2762, 2758, 2750, 2738, 2724, 2706,
+    2686, 2664, 2640, 2616, 2590, 2564, 2538, 2512, 2486, 2460,
+    2436, 2412, 2390, 2370, 2352, 2336, 2322, 2310, 2300, 2292,
+    2286, 2282, 2280, 2278, 2278, 2278, 2280, 2282, 2284, 2288,
+    // Return to baseline
+    2290, 2292, 2294, 2296, 2298, 2300, 2302, 2304, 2306, 2308,
+    2308, 2308, 2308, 2308, 2308, 2308, 2306, 2304, 2302, 2300,
+    2298, 2296, 2294, 2292, 2290, 2288, 2286, 2284, 2282, 2280,
+    2278, 2276, 2274, 2272, 2270, 2268, 2266, 2264, 2262, 2260,
+
+    // ========== HEARTBEAT 2 ==========
+    2258, 2256, 2254, 2252, 2250, 2248, 2246, 2244, 2242, 2240,
+    // P-wave
+    2238, 2245, 2255, 2268, 2285, 2305, 2328, 2353, 2378, 2402,
+    2424, 2442, 2456, 2465, 2470, 2472, 2470, 2465, 2456, 2444,
+    2430, 2414, 2397, 2379, 2361, 2343, 2326, 2310, 2295, 2282,
+    2270, 2260, 2252, 2246, 2241, 2238, 2236, 2235, 2234, 2234,
+    // PR segment
+    2234, 2234, 2234, 2234, 2234, 2234, 2234, 2234, 2234, 2234,
+    2234, 2234, 2234, 2234, 2234, 2234, 2234, 2234, 2234, 2234,
+    // Q-wave
+    2234, 2230, 2222, 2210, 2195, 2178, 2160, 2142, 2125, 2110,
+    2098, 2090, 2086, 2086, 2090, 2098, 2110, 2126, 2146, 2170,
+    // R-wave
+    2198, 2232, 2272, 2320, 2376, 2440, 2512, 2592, 2678, 2768,
+    2860, 2952, 3042, 3128, 3208, 3280, 3342, 3394, 3434, 3462,
+    3478, 3482, 3474, 3456, 3428, 3392, 3348, 3298, 3244, 3186,
+    3126, 3064, 3002, 2940, 2880, 2822, 2768, 2718, 2672, 2632,
+    2598, 2570, 2548, 2532, 2522, 2518, 2520, 2528, 2540, 2556,
+    // S-wave
+    2574, 2592, 2608, 2622, 2632, 2638, 2640, 2638, 2632, 2622,
+    2608, 2590, 2568, 2542, 2512, 2478, 2440, 2398, 2354, 2308,
+    2260, 2212, 2164, 2118, 2074, 2034, 1998, 1968, 1944, 1926,
+    1916, 1914, 1920, 1934, 1956, 1986, 2022, 2064, 2110, 2158,
+    // ST segment
+    2206, 2252, 2294, 2332, 2364, 2390, 2410, 2424, 2432, 2436,
+    2436, 2432, 2426, 2418, 2408, 2398, 2386, 2374, 2362, 2350,
+    2338, 2328, 2318, 2310, 2302, 2296, 2292, 2288, 2286, 2286,
+    2286, 2288, 2290, 2292, 2296, 2300, 2304, 2308, 2312, 2316,
+    // T-wave
+    2320, 2325, 2332, 2342, 2355, 2372, 2393, 2418, 2447, 2479,
+    2514, 2551, 2588, 2626, 2663, 2698, 2731, 2761, 2787, 2809,
+    2827, 2840, 2848, 2852, 2852, 2848, 2840, 2828, 2814, 2796,
+    2776, 2754, 2730, 2706, 2680, 2654, 2628, 2602, 2576, 2550,
+    2526, 2502, 2480, 2460, 2442, 2426, 2412, 2400, 2390, 2382,
+    2376, 2372, 2370, 2368, 2368, 2368, 2370, 2372, 2374, 2378,
+
+    // ========== HEARTBEAT 3 ==========
+    2380, 2382, 2384, 2386, 2388, 2390, 2392, 2394, 2396, 2398,
+    // P-wave
+    2400, 2407, 2417, 2430, 2447, 2467, 2490, 2515, 2540, 2564,
+    2586, 2604, 2618, 2627, 2632, 2634, 2632, 2627, 2618, 2606,
+    2592, 2576, 2559, 2541, 2523, 2505, 2488, 2472, 2457, 2444,
+    2432, 2422, 2414, 2408, 2403, 2400, 2398, 2397, 2396, 2396,
+    // PR segment
+    2396, 2396, 2396, 2396, 2396, 2396, 2396, 2396, 2396, 2396,
+    2396, 2396, 2396, 2396, 2396, 2396, 2396, 2396, 2396, 2396,
+    // Q-wave
+    2396, 2392, 2384, 2372, 2357, 2340, 2322, 2304, 2287, 2272,
+    2260, 2252, 2248, 2248, 2252, 2260, 2272, 2288, 2308, 2332,
+    // R-wave
+    2360, 2394, 2434, 2482, 2538, 2602, 2674, 2754, 2840, 2930,
+    3022, 3114, 3204, 3290, 3370, 3442, 3504, 3556, 3596, 3624,
+    3640, 3644, 3636, 3618, 3590, 3554, 3510, 3460, 3406, 3348,
+    3288, 3226, 3164, 3102, 3042, 2984, 2930, 2880, 2834, 2794,
+    2760, 2732, 2710, 2694, 2684, 2680, 2682, 2690, 2702, 2718,
+    // S-wave
+    2736, 2754, 2770, 2784, 2794, 2800, 2802, 2800, 2794, 2784,
+    2770, 2752, 2730, 2704, 2674, 2640, 2602, 2560, 2516, 2470,
+    2422, 2374, 2326, 2280, 2236, 2196, 2160, 2130, 2106, 2088,
+    2078, 2076, 2082, 2096, 2118, 2148, 2184, 2226, 2272, 2320,
+    // ST segment
+    2368, 2414, 2456, 2494, 2526, 2552, 2572, 2586, 2594, 2598,
+    2598, 2594, 2588, 2580, 2570, 2560, 2548, 2536, 2524, 2512,
+    2500, 2490, 2480, 2472, 2464, 2458, 2454, 2450, 2448, 2448,
+    2448, 2450, 2452, 2454, 2458, 2462, 2466, 2470, 2474, 2478,
+    // T-wave
+    2482, 2487, 2494, 2504, 2517, 2534, 2555, 2580, 2609, 2641,
+    2676, 2713, 2750, 2788, 2825, 2860, 2893, 2923, 2949, 2971,
+    2989, 3002, 3010, 3014, 3014, 3010, 3002, 2990, 2976, 2958,
+    2938, 2916, 2892, 2868, 2842, 2816, 2790, 2764, 2738, 2712,
+    2688, 2664, 2642, 2622, 2604, 2588, 2574, 2562, 2552, 2544,
+    2538, 2534, 2532, 2530, 2530, 2530, 2532, 2534, 2536, 2540,
+
+    // ========== HEARTBEAT 4 ==========
+    2542, 2544, 2546, 2548, 2550, 2552, 2554, 2556, 2558, 2560,
+    // P-wave
+    2562, 2569, 2579, 2592, 2609, 2629, 2652, 2677, 2702, 2726,
+    2748, 2766, 2780, 2789, 2794, 2796, 2794, 2789, 2780, 2768,
+    2754, 2738, 2721, 2703, 2685, 2667, 2650, 2634, 2619, 2606,
+    2594, 2584, 2576, 2570, 2565, 2562, 2560, 2559, 2558, 2558,
+    // PR segment
+    2558, 2558, 2558, 2558, 2558, 2558, 2558, 2558, 2558, 2558,
+    2558, 2558, 2558, 2558, 2558, 2558, 2558, 2558, 2558, 2558,
+    // Q-wave
+    2558, 2554, 2546, 2534, 2519, 2502, 2484, 2466, 2449, 2434,
+    2422, 2414, 2410, 2410, 2414, 2422, 2434, 2450, 2470, 2494,
+    // R-wave
+    2522, 2556, 2596, 2644, 2700, 2764, 2836, 2916, 3002, 3092,
+    3184, 3276, 3366, 3452, 3532, 3604, 3666, 3718, 3758, 3786,
+    3802, 3806, 3798, 3780, 3752, 3716, 3672, 3622, 3568, 3510,
+    3450, 3388, 3326, 3264, 3204, 3146, 3092, 3042, 2996, 2956,
+    2922, 2894, 2872, 2856, 2846, 2842, 2844, 2852, 2864, 2880,
+    // S-wave
+    2898, 2916, 2932, 2946, 2956, 2962, 2964, 2962, 2956, 2946,
+    2932, 2914, 2892, 2866, 2836, 2802, 2764, 2722, 2678, 2632,
+    2584, 2536, 2488, 2442, 2398, 2358, 2322, 2292, 2268, 2250,
+    2240, 2238, 2244, 2258, 2280, 2310, 2346, 2388, 2434, 2482,
+    // ST segment
+    2530, 2576, 2618, 2656, 2688, 2714, 2734, 2748, 2756, 2760,
+    2760, 2756, 2750, 2742, 2732, 2722, 2710, 2698, 2686, 2674,
+    2662, 2652, 2642, 2634, 2626, 2620, 2616, 2612, 2610, 2610,
+    2610, 2612, 2614, 2616, 2620, 2624, 2628, 2632, 2636, 2640,
+    // T-wave
+    2644, 2649, 2656, 2666, 2679, 2696, 2717, 2742, 2771, 2803,
+    2838, 2875, 2912, 2950, 2987, 3022, 3055, 3085, 3111, 3133,
+    3151, 3164, 3172, 3176, 3176, 3172, 3164, 3152, 3138, 3120,
+    3100, 3078, 3054, 3030, 3004, 2978, 2952, 2926, 2900, 2874,
+    2850, 2826, 2804, 2784, 2766, 2750, 2736, 2724, 2714, 2706,
+    2700, 2696, 2694, 2692, 2692, 2692, 2694, 2696, 2698, 2702,
+
+    // ========== HEARTBEAT 5 ==========
+    2704, 2706, 2708, 2710, 2712, 2714, 2716, 2718, 2720, 2722,
+    // P-wave
+    2724, 2731, 2741, 2754, 2771, 2791, 2814, 2839, 2864, 2888,
+    2910, 2928, 2942, 2951, 2956, 2958, 2956, 2951, 2942, 2930,
+    2916, 2900, 2883, 2865, 2847, 2829, 2812, 2796, 2781, 2768,
+    2756, 2746, 2738, 2732, 2727, 2724, 2722, 2721, 2720, 2720,
+    // PR segment
+    2720, 2720, 2720, 2720, 2720, 2720, 2720, 2720, 2720, 2720,
+    2720, 2720, 2720, 2720, 2720, 2720, 2720, 2720, 2720, 2720,
+    // Q-wave
+    2720, 2716, 2708, 2696, 2681, 2664, 2646, 2628, 2611, 2596,
+    2584, 2576, 2572, 2572, 2576, 2584, 2596, 2612, 2632, 2656,
+    // R-wave
+    2684, 2718, 2758, 2806, 2862, 2926, 2998, 3078, 3164, 3254,
+    3346, 3438, 3528, 3614, 3694, 3766, 3828, 3880, 3920, 3948,
+    3964, 3968, 3960, 3942, 3914, 3878, 3834, 3784, 3730, 3672,
+    3612, 3550, 3488, 3426, 3366, 3308, 3254, 3204, 3158, 3118,
+    3084, 3056, 3034, 3018, 3008, 3004, 3006, 3014, 3026, 3042,
+    // S-wave
+    3060, 3078, 3094, 3108, 3118, 3124, 3126, 3124, 3118, 3108,
+    3094, 3076, 3054, 3028, 2998, 2964, 2926, 2884, 2840, 2794,
+    2746, 2698, 2650, 2604, 2560, 2520, 2484, 2454, 2430, 2412,
+    2402, 2400, 2406, 2420, 2442, 2472, 2508, 2550, 2596, 2644,
+    // ST segment
+    2692, 2738, 2780, 2818, 2850, 2876, 2896, 2910, 2918, 2922,
+    2922, 2918, 2912, 2904, 2894, 2884, 2872, 2860, 2848, 2836,
+    2824, 2814, 2804, 2796, 2788, 2782, 2778, 2774, 2772, 2772,
+    2772, 2774, 2776, 2778, 2782, 2786, 2790, 2794, 2798, 2802,
+    // T-wave
+    2806, 2811, 2818, 2828, 2841, 2858, 2879, 2904, 2933, 2965,
+    3000, 3037, 3074, 3112, 3149, 3184, 3217, 3247, 3273, 3295,
+    3313, 3326, 3334, 3338, 3338, 3334, 3326, 3314, 3300, 3282,
+    3262, 3240, 3216, 3192, 3166, 3140, 3114, 3088, 3062, 3036,
+    3012, 2988, 2966, 2946, 2928, 2912, 2898, 2886, 2876, 2868,
+    2862, 2858, 2856, 2854, 2854, 2854, 2856, 2858, 2860, 2864,
+
+    // ========== HEARTBEAT 6 ==========
+    2866, 2868, 2870, 2872, 2874, 2876, 2878, 2880, 2882, 2884,
+    // P-wave
+    2886, 2893, 2903, 2916, 2933, 2953, 2976, 3001, 3026, 3050,
+    3072, 3090, 3104, 3113, 3118, 3120, 3118, 3113, 3104, 3092,
+    3078, 3062, 3045, 3027, 3009, 2991, 2974, 2958, 2943, 2930,
+    2918, 2908, 2900, 2894, 2889, 2886, 2884, 2883, 2882, 2882,
+    // PR segment
+    2882, 2882, 2882, 2882, 2882, 2882, 2882, 2882, 2882, 2882,
+    2882, 2882, 2882, 2882, 2882, 2882, 2882, 2882, 2882, 2882,
+    // Q-wave
+    2882, 2878, 2870, 2858, 2843, 2826, 2808, 2790, 2773, 2758,
+    2746, 2738, 2734, 2734, 2738, 2746, 2758, 2774, 2794, 2818,
+    // R-wave
+    2846, 2880, 2920, 2968, 3024, 3088, 3160, 3240, 3326, 3416,
+    3508, 3600, 3690, 3776, 3856, 3928, 3990, 4042, 4082, 4110,
+    4126, 4130, 4122, 4104, 4076, 4040, 3996, 3946, 3892, 3834,
+    3774, 3712, 3650, 3588, 3528, 3470, 3416, 3366, 3320, 3280,
+    3246, 3218, 3196, 3180, 3170, 3166, 3168, 3176, 3188, 3204,
+    // S-wave
+    3222, 3240, 3256, 3270, 3280, 3286, 3288, 3286, 3280, 3270,
+    3256, 3238, 3216, 3190, 3160, 3126, 3088, 3046, 3002, 2956,
+    2908, 2860, 2812, 2766, 2722, 2682, 2646, 2616, 2592, 2574,
+    2564, 2562, 2568, 2582, 2604, 2634, 2670, 2712, 2758, 2806,
+    // ST segment
+    2854, 2900, 2942, 2980, 3012, 3038, 3058, 3072, 3080, 3084,
+    3084, 3080, 3074, 3066, 3056, 3046, 3034, 3022, 3010, 2998,
+    2986, 2976, 2966, 2958, 2950, 2944, 2940, 2936, 2934, 2934,
+    2934, 2936, 2938, 2940, 2944, 2948, 2952, 2956, 2960, 2964,
+    // T-wave
+    2968, 2973, 2980, 2990, 3003, 3020, 3041, 3066, 3095, 3127,
+    3162, 3199, 3236, 3274, 3311, 3346, 3379, 3409, 3435, 3457,
+    3475, 3488, 3496, 3500, 3500, 3496, 3488, 3476, 3462, 3444,
+    3424, 3402, 3378, 3354, 3328, 3302, 3276, 3250, 3224, 3198,
+    3174, 3150, 3128, 3108, 3090, 3074, 3060, 3048, 3038, 3030,
+    3024, 3020, 3018, 3016, 3016, 3016, 3018, 3020, 3022, 3026,
+
+    // ========== HEARTBEAT 7 ==========
+    3028, 3030, 3032, 3034, 3036, 3038, 3040, 3042, 3044, 3046,
+    // P-wave
+    3048, 3055, 3065, 3078, 3095, 3115, 3138, 3163, 3188, 3212,
+    3234, 3252, 3266, 3275, 3280, 3282, 3280, 3275, 3266, 3254,
+    3240, 3224, 3207, 3189, 3171, 3153, 3136, 3120, 3105, 3092,
+    3080, 3070, 3062, 3056, 3051, 3048, 3046, 3045, 3044, 3044,
+    // PR segment
+    3044, 3044, 3044, 3044, 3044, 3044, 3044, 3044, 3044, 3044,
+    3044, 3044, 3044, 3044, 3044, 3044, 3044, 3044, 3044, 3044,
+    // Q-wave
+    3044, 3040, 3032, 3020, 3005, 2988, 2970, 2952, 2935, 2920,
+    2908, 2900, 2896, 2896, 2900, 2908, 2920, 2936, 2956, 2980,
+    // R-wave
+    3008, 3042, 3082, 3130, 3186, 3250, 3322, 3402, 3488,     3578, 3668, 3760, 3852, 3942, 4030, 4110, 4182, 4244, 4296,
+    4336, 4364, 4380, 4384, 4376, 4358, 4330, 4294, 4250, 4200,
+    4146, 4088, 4028, 3966, 3906, 3848, 3794, 3744, 3698, 3658,
+    3624, 3596, 3574, 3558, 3548, 3544, 3546, 3554, 3566, 3582,
+    // S-wave
+    3600, 3618, 3634, 3648, 3658, 3664, 3666, 3664, 3658, 3648,
+    3634, 3616, 3594, 3568, 3538, 3504, 3466, 3424, 3380, 3334,
+    3286, 3238, 3190, 3144, 3100, 3060, 3024, 2994, 2970, 2952,
+    2942, 2940, 2946, 2960, 2982, 3012, 3048, 3090, 3136, 3184,
+    // ST segment
+    3232, 3278, 3320, 3358, 3390, 3416, 3436, 3450, 3458, 3462,
+    3462, 3458, 3452, 3444, 3434, 3424, 3412, 3400, 3388, 3376,
+    3364, 3354, 3344, 3336, 3328, 3322, 3318, 3314, 3312, 3312,
+    // T-wave
+    3316, 3324, 3336, 3352, 3372, 3396, 3424, 3456, 3490, 3524,
+    3558, 3590, 3620, 3646, 3668, 3686, 3700, 3708, 3712, 3710,
+    3704, 3694, 3680, 3662, 3640, 3616, 3590, 3564, 3538, 3512,
+    3486, 3462, 3440, 3420, 3402, 3386, 3372, 3360, 3350, 3342,
+
+    // ========== HEARTBEAT 8 ==========
+    3336, 3338, 3340, 3342, 3344, 3346, 3348, 3350, 3352, 3354,
+    // P-wave
+    3356, 3364, 3376, 3392, 3412, 3436, 3464, 3496, 3528, 3560,
+    3588, 3612, 3630, 3642, 3648, 3650, 3648, 3642, 3630, 3612,
+    // QRS
+    3600, 3560, 3480, 3360, 3200, 3000, 2800, 2600, 2450, 2350,
+    2400, 2600, 3000, 3500, 3900, 4200, 4400, 4500, 4450, 4300,
+    4050, 3750, 3450, 3200, 3000,
+    // T-wave
+    3050, 3120, 3200, 3280, 3340, 3380, 3400, 3390, 3360, 3320,
+    3280, 3240, 3200, 3160, 3120, 3080, 3040, 3000,
+
+    // ========== HEARTBEAT 9 ==========
+    2998, 3000, 3002, 3004, 3006, 3008, 3010, 3012, 3014, 3016,
+    // P-wave
+    3018, 3026, 3038, 3054, 3074, 3098, 3126, 3158, 3190, 3222,
+    // QRS
+    3200, 3100, 2900, 2600, 2200, 1800, 2000, 2600, 3400, 4200,
+    4600, 4800, 4700, 4400, 4000, 3600,
+    // T-wave
+    3650, 3720, 3800, 3880, 3940, 3980, 4000, 3990, 3960, 3920,
+    3880, 3840, 3800, 3760, 3720, 3680,
+
+    // ========== HEARTBEAT 10 ==========
+    3678, 3680, 3682, 3684, 3686, 3688, 3690, 3692, 3694, 3696,
+    // P-wave
+    3698, 3706, 3718, 3734, 3754, 3778, 3806, 3838, 3870, 3902,
+    // QRS
+    3880, 3700, 3300, 2700, 2000, 1500, 1800, 2600, 3600, 4500,
+    5000, 5200, 5100, 4700, 4200, 3800,
+    // T-wave
+    3850, 3920, 4000, 4080, 4140, 4180, 4200, 4190, 4160, 4120,
+    4080, 4040, 4000, 3960, 3920, 3880
+};
+
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
+static void MX_UART4_Init(void);
+static void MX_SPI2_Init(void);
+static void MX_TIM2_Init(void);
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+void stop_streaming(void);
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart); //poziva se nakon prijenosa svakog paketa
+void start_stream(void);
+void send_packet(void);
+int generate_ecg_sample(void);
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim); //poziva sa frekvnecijom 128 Hz
+
+
+
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_UART4_Init();
+  MX_SPI2_Init();
+  MX_TIM2_Init();
+  /* USER CODE BEGIN 2 */
+
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_UART_Receive_IT(&huart4, &rx_byte, 1); //omogucujemo interrupt da povežemo python sa mikrokontrolerom
+//  MAX30003_Init(&hspi2);
+
+  myPacket.header = 0xAA;
+  myPacket.footer = 0x0A;
+  myPacket.bpm = 0;
+
+
+
+
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+	  if (streaming)
+	    {
+	      if(transfer_complete == 0){
+	    	  transfer_complete = 1;
+	    	  ecg_data = MAX30003_ReadECG(&hspi2);
+	    	 // ecg_data = generate_data();
+	    	  bpm_main = PanTompkins_Process(ecg_data);
+	    	  myPacket.ecg_raw = ecg_data;
+	    	  myPacket.bpm = bpm_main;
+	    	  HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket), 5); //5 ms timeout
+
+
+	      }
+	    }
+	    else
+	    {
+	      // Kad nema streaming, provjeri UART komande
+	    }
+
+
+
+  }
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Configure the main internal regulator output voltage
+  */
+  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 9;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_low;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 7;
+  hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 7200;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 78;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief UART4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART4_Init(void)
+{
+
+  /* USER CODE BEGIN UART4_Init 0 */
+
+  /* USER CODE END UART4_Init 0 */
+
+  /* USER CODE BEGIN UART4_Init 1 */
+
+  /* USER CODE END UART4_Init 1 */
+  huart4.Instance = UART4;
+  huart4.Init.BaudRate = 115200;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART4_Init 2 */
+
+  /* USER CODE END UART4_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMAMUX1_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+  /* DMA1_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : B1_Pin */
+  GPIO_InitStruct.Pin = B1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LPUART1_TX_Pin LPUART1_RX_Pin */
+  GPIO_InitStruct.Pin = LPUART1_TX_Pin|LPUART1_RX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF12_LPUART1;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
+}
+
+/* USER CODE BEGIN 4 */
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+//Nakon što se triggera interrupt na rx, ova se funkcija automatski poziva
+
+{
+    if (huart->Instance == UART4)
+    {
+        if (rx_byte == '\n')   // kraj poruke, poruke koje šaljemo iz pythonu moraju zavrsavat na '\n'
+        {
+            rx_buffer[rx_index] = '\0';
+            rx_index = 0;
+
+            if (strcmp(rx_buffer, "#?#") == 0)
+            {
+                // SYNC zahtjev saljemo sa uartom u python skriptu
+            	//preko uarta5 šaljemo znak !, koji sadrži samo jedan bajt i timeout je 100ms
+                HAL_UART_Transmit(&huart4, (uint8_t*)"!", 1, 100);
+            }
+            else if (strcmp(rx_buffer, "#A#") == 0)
+            {
+            	//strcmp(a,b) - usporedjuje dva stringa i ako su jednaki vraca nulu
+                // START STREAM
+            	HAL_UART_Receive_IT(&huart4, &rx_byte, 1);
+            	start_stream();
+            }
+            else if (strcmp(rx_buffer, "#S#") == 0)
+            {
+                // STOP STREAM
+                stop_streaming();
+            }
+            else if(strcmp(rx_buffer, "#D#") == 0)
+            {
+
+            }
+        }
+        else
+        {
+            rx_buffer[rx_index++] = rx_byte;
+            if (rx_index >= sizeof(rx_buffer))
+                rx_index = 0;
+        }
+
+        HAL_UART_Receive_IT(&huart4, &rx_byte, 1);
+
+    }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
+	if(htim->Instance == TIM2){
+
+		if (streaming)
+			   {
+			      transfer_complete = 0; //znaci da mozemo po sljedeci podatak sa SPI
+
+			   }
+
+	}
+
+
+}
+
+
+void stop_streaming(void)
+{
+	transfer_complete = 0;
+    streaming = 0;
+    HAL_UART_AbortTransmit(&huart4);
+}
+
+
+void start_stream(void){
+	if (!streaming)
+	  {
+	    streaming = 1;
+	    transfer_complete = 1;
+	  }
+}
+
+
+
+int generate_data(void)
+	{
+    if(mock_index == 2500){
+    	mock_index = 0;
+    }
+    mock_index += 1;
+    return ecg_mock_data[mock_index];
+
+	}
+
+
+
+
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+
+#ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */

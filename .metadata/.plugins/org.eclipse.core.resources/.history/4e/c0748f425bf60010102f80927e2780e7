@@ -1,0 +1,30 @@
+/*
+ * MAX30003.h
+ *
+ *  Created on: Jan 18, 2026
+ *      Author: glusc
+ */
+
+#ifndef MAX30003_H
+#define MAX30003_H
+
+#include "stm32g4xx_hal.h"
+
+#ifndef MAX30003_H
+#define MAX30003_H
+
+#include "main.h"
+
+#define MAX30003_CS_PORT GPIOC
+#define MAX30003_CS_PIN  GPIO_PIN_9
+
+void MAX30003_CS_Low(void);
+void MAX30003_CS_High(void);
+void MAX30003_Init(SPI_HandleTypeDef *hspi);
+void MAX30003_WriteRegister(SPI_HandleTypeDef *hspi, uint8_t reg, uint32_t data);
+uint32_t MAX30003_ReadRegister(SPI_HandleTypeDef *hspi, uint8_t reg);
+int MAX30003_ReadECG(SPI_HandleTypeDef *hspi);
+
+#endif
+
+#endif /* MAX30003_H */

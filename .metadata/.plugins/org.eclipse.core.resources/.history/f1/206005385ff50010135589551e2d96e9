@@ -1,0 +1,60 @@
+/*
+ * MAX30003.c
+ *
+ *  Created on: Jan 18, 2026
+ *      Author: glusc
+ */
+#include "MAX30003.h"
+
+#include <stdint.h>
+
+int MAX30003_ReadECG(SPI_HandleTypeDef *hspi)
+{
+    uint8_t tx_buf[4];
+    uint8_t rx_buf[4];
+    int ecg_sample;
+
+    /* Read ECG FIFO command */
+    tx_buf[0] = (0x21 << 1) | 1;  // ECG_FIFO read
+    tx_buf[1] = 0x00;
+    tx_buf[2] = 0x00;
+    tx_buf[3] = 0x00;
+
+    MAX30003_CS_Low();
+
+    HAL_SPI_TransmitReceive(&hspi, tx_buf, rx_buf, 4, HAL_MAX_DELAY); //ubiti ne šaljemo ništa osim komande za FIFO read
+
+    MAX30003_CS_High();
+
+    /*
+     * rx_buf[1..3] contain ECG data
+     * ECG FIFO data format:
+     * [23:6] = ECG sample (18-bit signed)
+     * [5:0]  = status bits
+     */
+
+    ecg_sample = ((int32_t)rx_buf[1] << 16) |
+                 ((int32_t)rx_buf[2] << 8)  |
+                 ((int32_t)rx_buf[3]);
+
+    ecg_sample >>= 6;  // Remove status bits
+
+    /* Sign extend 18-bit value */
+    if (ecg_sample & (1 << 17))
+    {
+        ecg_sample |= 0xFFFC0000;
+    }
+
+    return ecg_sample;
+}
+
+
+static void MAX30003_CS_Low(void)
+{
+    HAL_GPIO_WritePin(MAX30003_CS_PORT, MAX30003_CS_PIN, GPIO_PIN_RESET);
+}
+
+static void MAX30003_CS_High(void)
+{
+  HAL_GPIO_WritePin(MAX30003_CS_PORT, MAX30003_CS_PIN, GPIO_PIN_SET);
+}

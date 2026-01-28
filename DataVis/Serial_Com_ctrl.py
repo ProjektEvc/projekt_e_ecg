@@ -17,12 +17,12 @@ class SerialControl():
 
 
     def SerialOpen(self, GUI):
-        try:  #korisitmo try za svaku slučaj ako je več otovoren neki serial com port
+        try:  #korisitmo try za svaku slučaj ako je već otovoren neki serial com port
             self.ser.is_open
         except:
             PORT = GUI.clicked_com.get()
             BAUD = GUI.clicked_bd.get()
-            self.ser = serial.Serial() #inicijalzira obejt tipa serial, ali još ne otvara niti jedan port
+            self.ser = serial.Serial() #inicijalizira obejt tipa serial, ali još ne otvara niti jedan port
             self.ser.baudrate = BAUD
             self.ser.port = PORT
             self.ser.timeout = 0.1 #100ms
@@ -33,13 +33,13 @@ class SerialControl():
                 self.ser.status = True
             else:
                 PORT = GUI.clicked_com.get()
-            BAUD = GUI.clicked_bd.get()
-            self.ser = serial.Serial() #inicijalzira obejt tipa serial, ali još ne otvara niti jedan port
-            self.ser.baudrate = BAUD
-            self.ser.port = PORT
-            self.ser.timeout = 0.1 #100ms
-            self.ser.open()
-            self.ser.status = True
+                BAUD = GUI.clicked_bd.get()
+                self.ser = serial.Serial() #inicijalizira obejt tipa serial, ali još ne otvara niti jedan port
+                self.ser.baudrate = BAUD
+                self.ser.port = PORT
+                self.ser.timeout = 0.1 #100ms
+                self.ser.open()
+                self.ser.status = True
         except:
             self.ser.status = False
 
@@ -71,21 +71,12 @@ class SerialControl():
                
                
                 if gui.data.sync_ok in gui.data.msg[0]: #ako je istina to znači da je mikrokontroler uspješno primio i vratio poruku nazad
-                #    if int(gui.data.msg[1]) > 0:
-                #         pass
-                #ovo ce sluzit ako cemo htjet ikad imat vise kanala
                     gui.conn.btn_start_stream["state"] = "active"
-                    gui.conn.btn_add_chart["state"] = "active"
-                    gui.conn.btn_remove_chart["state"] = "active"
+                    gui.conn.btn_save_location["state"] = "active"
                     gui.conn.save_check["state"] = "active"
                     gui.conn.sync_status["fg"] = "green"
                     gui.conn.sync_status["text"] = "OK"
-                    gui.conn.btn_save_location["state"] = "active"
-                    gui.conn.ch_status["text"] = "1"  #za sad imamo jedan kanal
-                    gui.data.SynchChannel = 1 #za sad imamo jedan kanal #ovo dvoje bi inace bilo int(gui.data.msg[1])
-                    gui.data.GenChannels() #stvorit cemo listu od jednog kanala
-
-                    gui.data.buildYdata()
+                    gui.conn.ch_status["text"] = "1"  #hardcoded to 1 channel
 
                     gui.data.FileNameFunc()
 
@@ -126,8 +117,6 @@ class SerialControl():
                         if len(rem) == 9:
                             gui.data.RowMsg = b'\xaa' + rem
                             gui.data.DecodePacket(self.ser)
-                            # Start referentno vrijeme
-                           # gui.data.SetRefTime()
                             break
             
             except Exception as e:
@@ -149,14 +138,9 @@ class SerialControl():
                             gui.data.UpdateXdata()
                             # Update Ydata
                             gui.data.UpdateYdata()
-                          #  Ysam = [Ys[len(gui.data.XData)-1] for Ys in gui.data.YData]
-                          #  print(f"X: {gui.data.XData[len(gui.data.XData)-1]}, Y: {Ysam}")
                             gui.data.AdjustData() #sluzi da poravnamo X os
-                           # print(f"X Len: {len(gui.data.XData)}, Xstart:{gui.data.XData[0]}  Xend : {gui.data.XData[len(gui.data.XData)-1]}, Xrange: {gui.data.XData[len(gui.data.XData)-1] - gui.data.XData[0]} Ydata len: {len(gui.data.YData[0])} Yval: : {Ysam} ")
                             
                             if gui.save:
-                            #    t1 = threading.Thread(target = gui.data.SaveData, args = (gui,), daemon = True)
-                            #    t1.start()
                                 gui.data.SaveData(gui)
             except Exception as e:
                 print(f"Greška u streamu: {e}")

@@ -1,0 +1,595 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2025 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "MAX30003.h"
+#include "PanTompkins.h"
+#include <string.h>
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+//parametri sinusa
+
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+SPI_HandleTypeDef hspi2;
+DMA_HandleTypeDef hdma_spi2_rx;
+DMA_HandleTypeDef hdma_spi2_tx;
+
+TIM_HandleTypeDef htim2;
+
+UART_HandleTypeDef huart4;
+DMA_HandleTypeDef hdma_uart4_rx;
+DMA_HandleTypeDef hdma_uart4_tx;
+
+/* USER CODE BEGIN PV */
+
+uint8_t rx_byte;
+char rx_buffer[32];
+uint8_t rx_index = 0;
+
+
+volatile uint8_t streaming = 0; //varijabla sa kojom ćemo pokrenut omogucit tj. onemogucit dma prijenos prema uartu
+volatile int data = 0;
+volatile uint16_t mock_index = 0;
+volatile int bpm_main = 0;
+volatile int ecg_data;
+
+
+
+typedef struct __attribute__((packed)) {
+    uint8_t  header;    // 0xAA
+    int ecg_raw;   // 4 bytes (MAX30003 gives 24-bit, we store in 32
+    int bpm;
+    uint8_t  footer;    // 0xZZ
+} ECG_Packet_t;
+//__attribute__ govori kompajleru "sada  cu ti dat neku iznimnu nardebu", packed znači da se adrese u strukturi koju pošaljemo u
+//mikrokontroler neće poravnati na adrese djeljive sa 4, već čemo ih "stisnut skupa
+
+
+ECG_Packet_t myPacket;
+
+
+volatile uint8_t transfer_complete = 1; // Zastavica kojom kontroliramo SPI prijenos
+
+
+const int16_t ecg_mock_data[] = {
+		-3094, -2944, -3019, -2957, -2855, -2603, -2206, -2020, -1945, -1817, -1565, -1189, -773, -437, -535, -742, -1136, -1291, -1542, -1405, -1596, -1688, -2082, -2347, -2749, -3191, -3536, -3943, -4234, -4389, -4813, -5114, -5512, -6086, -6254, -6436, -6475, -6595, -6639, -6811, -6714, -6498, -6365, -6400, -6546, -6696, -6993, -7134, -7457, -7368, -7267, -7289, -7395, -7448, -7386, -7550, -7545, -7390, -7470, -7660, -7802, -7793, -7916, -8005, -7947, -8084, -8058, -8164, -8518, -8473, -8628, -8597, -8438, -8274, -8239, -9627, -13079, -15687, -18052, -19599, -20846, -21385, -21575, -22026, -22967, -23135, -23202, -23153, -23551, -23913, -24355, -24700, -24921, -25054, -25425, -25858, -25938, -26411, -26534, -26658, -26857, -26676, -26605, -26455, -26817, -27255, -27343, -27564, -27684, -28037, -27206, -26574, -26238, -26495, -26022, -23016, -19228, -16531, -14396, -14662, -18728, -22927, -25986, -27516, -28607, -27958, -27352, -27370, -27661, -27387, -27339, -27794, -28015, -28055, -28104, -28325, -28232, -28192, -27975, -28020, -27966, -27869, -27829, -27869, -27905, -27869, -27533, -27498, -27507, -27268, -26998, -26941, -26870, -26605, -26393, -26141, -25818, -25230, -25213, -25217, -24961, -24687, -24391, -23842, -23325, -22804, -22004, -21699, -21128, -21111, -21358, -21597, -21593, -21606, -21349, -21071, -21031, -21243, -21235, -21265, -21027, -21000, -21181, -21650, -21928, -22256, -22269, -22472, -22905, -22892, -22976, -23020, -22954, -22852, -22322, -22145, -21911, -21827, -21716, -21707, -21535, -21332, -21009, -20885, -20585, -20404, -20213, -19908, -19789, -19471, -19533, -19347, -19325, -19214, -18901, -18954, -18759, -18742, -18896, -18578, -18635, -18706, -18680, -18591, -18543, -18578, -18640, -18627, -18551, -18503, -18525, -18574, -18826, -19011, -18971, -18759, -18565, -18286, -18189, -18118, -17897, -17725, -17725, -17871, -18291, -18582, -18702, -18755, -18918, -18790, -18799, -18909, -18706, -18631, -18755, -18724, -18574, -18666, -18596, -18454, -18666, -18750, -18600, -18326, -17690, -17102, -17380, -17168, -15409, -11607, -8261, -5233, -3178, -5074, -8862, -12319, -14162, -15696, -16403, -15692, -15413, -15294, -15382, -14781, -14644, -14847, -14927, -14781, -14781, -14396, -14569, -14600, -14710, -14489, -14410, -14299, -14295, -14388, -14441, -14388, -14295, -14025, -13844, -13888, -13822, -13733, -13729, -13552, -13349, -13296, -12933, -12916, -12726, -12531, -12239, -12142, -11837, -11643, -11205, -10935, -10569, -10498, -10281, -10118, -9879, -9786, -9950, -9711, -9835, -10127, -10034, -10206, -10485, -10586, -10900, -11090, -11254, -11519, -11873, -11930, -12151, -12315, -12297, -12637, -12695, -12673, -12593, -12814, -12602, -12425, -12421, -12323, -12257, -12049, -12138, -11877, -11793, -11722, -11497, -11333, -11095, -11006, -10913, -10679, -10524, -10308, -10219, -10109, -9866, -9976, -10016, -9941, -10104, -10613, -11461, -11280, -10551, -9742, -8884, -8319, -8071, -8350, -8588, -8566, -8588, -8624, -8372, -8098, -8067, -7797, -7315, -7085, -7306, -7483, -7488, -7828, -8133, -8602, -8540, -8571, -8398, -8425, -8606, -8526, -8562, -8407, -8442, -8610, -8513, -8045, -7916, -7934, -7554, -6962, -6259, -5600, -5578, -5163, -3571, -159, 2489, 4734, 5406, 1309, -3885, -6643, -7430, -8518, -8827, -8526, -8553, -9017, -9296, -8876, -8854, -9057, -9711, -9777, -9720, -9707, -9830, -9923, -10290, -10016, -10007, -9826, -10140, -10255, -10038, -9791, -10082, -10073, -10476, -10317, -10096, -10096, -10043, -9928, -9813, -9592, -9556, -9477, -9380, -9052, -8845, -8509, -8146, -7802, -7245, -7037, -6661, -6524, -6458, -6453, -6268, -6153, -5998, -6179, -6188, -6281, -6674, -6754, -7461, -7757, -7890, -8036, -8350, -8500, -8814, -8960, -9357, -9388, -9547, -9875, -9768, -9901, -9662, -9804, -9866, -9768, -9906, -9906, -9782, -9870, -9786, -9649, -9640, -9755, -9587, -9539, -9410, -9371, -9207, -9057, -9026, -8889, -9083, -9163, -9035, -9304, -9172, -9088, -8907, -9035, -9030, -8911, -8836, -8898, -8752, -8774, -8668, -8831, -8867, -8739, -8792, -8694, -8579, -8345, -8465, -8509, -8425, -8332, -8093, -8199, -8487, -8659, -8840, -9136, -9242, -9291, -9477, -9380, -9402, -9499, -9543, -9229, -9406, -9384, -9212, -9282, -9494, -9388, -9380, -9216, -8279, -7488, -6842, -6984, -6241, -3611, 75, 2029, 3245, 1958, -2272, -5914, -7726, -8827, -9464, -8350, -7474, -7603, -7992, -7784, -7545, -8513, -9101, -9260, -9154, -8942, -9070, -9097, -8995, -8650, -8694, -8531, -8557, -8469, -8394, -8420, -8257, -8297, -8221, -8133, -7899, -7996, -7771, -7709, -7620, -7373, -7209, -7001, -6935, -6582, -6334, -6166, -5954, -5640, -5300, -5039, -4597, -4394, -4084, -3996, -3722, -3554, -3616, -3567, -3739, -3726, -3823, -3903, -4124, -4535, -4769, -5132, -5494, -5733, -6144, -6361, -6462, -6833, -7068, -7214, -7178, -7275, -7373, -7603, -7492, -7461, -7550, -7377, -7364, -7258, -7457, -7262, -7125, -7134, -7267, -7178, -7001, -7138, -7143, -7019, -6940, -6749, -6873, -6878, -6767, -6948, -6997, -6864, -6909, -6807, -6957, -6727, -6864, -6913, -7077, -6966, -7001, -7130, -6926, -7103, -7236, -7497, -7625, -7474, -7426, -7284, -6988, -6842, -6944, -6891, -6767, -6736, -6833, -6926, -6900, -6798, -6254, -5835, -4889, -4089, -3187, -2338, -1626, 318, 2582, 4500, 5990, 7607, 9274, 10427, 11550, 12779, 13606, 14742, 15356, 15175, 15643, 18441, 24236, 27600, 30610, 32767, 30314, 24603, 19113, 16351, 13446, 12673, 13049, 12881, 12394, 12297, 12319, 12142, 11731, 11515, 11652, 11656, 11506, 11382, 11413, 11267, 11294, 11161, 11033, 10785, 10896, 10662, 10808, 10419, 10427, 10520, 10538, 10450, 10343, 10335, 10405, 10427, 10361, 10268, 10246, 10295, 10321, 10016, 9433, 8646, 7134, 3841, 1503, -261, -1777, -2572, -2953, -3403, -3514, -3938, -4199, -4570, -4995, -5348, -5781, -6577, -6696, -7386, -7974, -8641, -9207, -9879, -10290, -10613, -11528, -11819, -12253, -12425, -12726, -12832, -13132, -13300, -13212, -13247, -13092, -13123, -13283, -13176, -12960, -13079, -13349, -13243, -13168, -12960, -13062, -13309, -13455, -13649, -13972, -13822, -14100, -14242, -14149, -14463, -14317, -14352, -14498, -14388, -14675, -14533, -14595, -14754, -14626, -14892, -15006, -14825, -15020, -14878, -14856, -14962, -14790, -14998, -15113, -15320, -15174, -15046, -14759, -14595, -14498, -14321, -14211, -13954, -13809, -13937, -14233, -14635, -14697, -14865, -14993, -14993, -15121, -15197, -15117, -14989, -14719, -14573, -14635, -14551, -14432, -14423, -14268, -14339, -14012, -13901, -12858, -12456, -12226, -12615, -11722, -8761, -5923, -3797, -2108, -4084, -9185, -11811, -13092, -13265, -13707, -13062, -12659, -12566, -12964, -12876, -12531, -12889, -13517, -13919, -13932, -13645, -13694, -13729, -13875, -13676, -13406, -13411, -13402, -13557, -13406, -13159, -13132, -13084, -13243, -13128, -12907, -12606, -12531, -12668, -12571, -12376, -12337, -11979, -12120, -11780, -11342, -11285, -11143, -11019, -10728, -10317, -9981, -9804, -9919, -9645, -9534, -9207, -9265, -9353, -9353, -9273, -9472, -9760, -9839, -10131, -10330, -10520, -10794, -11130, -11174, -11395, -11576, -11824, -12147, -12208, -12200, -12385, -12337, -12133, -12208, -12443, -12350, -12319, -12133, -12200, -12160, -12067, -12040, -11850, -11921, -11881, -11793, -11762, -11824, -11634, -11621, -11528, -11731, -11519, -11616, -11364, -11280, -11201, -11223, -11307, -11338, -11276, -11205, -11214, -11280, -11059, -11276, -11192, -11187, -11263, -11307, -11267, -11196, -11183, -10984, -11037, -10997, -11174, -11152, -10971, -11042, -10997, -10648, -10630, -10683, -10732, -10458, -10657, -10865, -11152, -11475, -11501, -11722, -11669, -11678, -11479, -11506, -11453, -11638, -11382, -11466, -11245, -11196, -11360, -11090, -10927, -10988, -10666, -10321, -9547, -8862, -9141, -9269, -7664, -3735, -849, 1415, 2387, -685, -5158, -7390, -9092, -10569, -10454, -9353, -9428, -9645, -9468, -9150, -9614, -10118, -10348, -10286, -10029, -9919, -10082, -10034, -10025, -10056, -9919, -10047, -10007, -10029, -9826, -9928, -9755, -9972, -9764, -9596, -9428, -9468, -9397, -9481, -9349, -8933, -8955, -8593, -8681, -8310, -8160, -7899, -7788, -7620, -7284, -6882, -6604, -6710, -6281, -6250, -6122, -6069, -6157, -6268, -6254, -6409, -6599, -6670, -6794, -7320, -7457, -7656, -7992, -8363, -8633, -8544, -8747, -8787, -9132, -9150, -9092, -9039, -9313, -9110, -9154, -9114, -9300, -9287, -9105, -9172, -9123, -9035, -9021, -8840, -9159, -9110, -9035, -9030, -8845, -8898, -8849, -8770, -8765, -8831, -8880, -8854, -8787, -9021, -9066, -9128, -9128, -9070, -9035, -8809, -8867, -8858, -8800, -8770, -8805, -8854, -9110, -9052, -9291, -9070, -9132, -9123, -9057, -9026, -8809, -8871, -8854, -8535, -8770, -8787, -8840, -8858, -9070, -8770, -8549, -7841, -7594, -7497, -7413, -7448, -7550, -7837, -8014, -8199, -8239, -8350, -8637, -8553, -8482, -8522, -8606, -8628, -8562, -8500, -8522, -8588, -8619, -8571, -8518, -8778, -8571, -8372, -7841, -7519, -8226, -7452, -4544, 146, 3828, 6825, 7952, 4884, -159, -4451, -7200, -9141, -8951, -8473, -7925, -7846, -7793, -7329, -7673, -8151, -8314, -8310, -8164, -8239, -8173, -8058, -8049, -8146, -8221, -8182, -8084, -8062, -8137, -8204, -8182, -8106, -8076, -7877, -7691, -7678, -7585, -7541, -7346, -7178, -6917, -6820, -6749, -6542, -6140, -5910, -5547, -5441, -4959, -4831, -4610, -4508, -4146, -4177, -4035, -3837, -3761, -3651, -3655, -3766, -4093, -4292, -4460, -4977, -5079, -5680, -5892, -6325, -6825, -6922, -7284, -7514, -7664, -7890, -7978, -8080, -8071, -8217, -8155, -8487, -8332, -8606, -8504, -8434, -8491, -8332, -8354, -8257, -8429, -8208, -8328, -8358, -8270, -8182, -8208, -8310, -8345, -8283, -8204, -8217, -8040, -8089, -8283, -8447, -8456, -8314, -8381, -8305, -8447, -8690, -8549, -8655, -8602, -8469, -8686, -8778, -12429, -21681, -27591, -27387, -20527, -14467, -13521, -8195, -3624, -972, -132, 650, -48, -2144, -4707, -6290, -6215, -5720, -6228, -7178, -7753, -6913, -5512, -5295, -6197, -6984, -6917, -6489, -6440, -7395, -8142, -8000, -7474, -7094, -7589, -8261, -7987, -7364, -6962, -7275, -7855, -7682, -7214, -7068, -7240, -7483, -7152, -6294, -5883, -6157, -5786, -2776, 911, 3435, 4597, 2750, -1878, -4840, -5932, -6277, -6838, -6299, -5521, -5269, -5746, -6201, -5972, -6338, -6873, -7302, -7253, -7081, -7187, -7161, -7050, -7006, -7077, -6917, -6917, -6816, -7006, -6798, -6922, -6935, -6838, -6763, -6551, -6661, -6418, -6338, -6254, -6029, -5879, -5910, -5569, -5490, -5255, -5096, -4623, -4561, -4199, -3947, -3788, -3585, -3275, -3182, -2908, -2997, -2807, -2780, -2948, -2917, -3001, -3346, -3580, -3757, -4248, -4323, -4685, -5185, -5353, -5839, -5923, -6033, -6285, -6436, -6635, -6714, -6833, -6842, -6993, -6913, -6979, -6847, -6869, -7010, -6913, -6719, -6860, -6878, -6763, -6674, -6723, -6842, -6873, -6785, -6705, -6736, -6577, -6621, -6546, -6710, -6719, -6577, -6648, -6577, -6719, -6710, -6829, -6917, -7116, -7001, -6993, -7099, -7174, -7130, -7032, -7015, -7094, -6913, -7147, -7046, -7015, -7094, -7174, -7152, -7324, -7284, -7355, -7439, -7430, -7346, -7306, -7355, -7178, -7187, -7108, -7046, -7337, -7413, -7448, -7404, -7090, -6595, -6400, -6396, -6577, -6528, -6842, -7174, -7183, -7395, -7607, -7629, -7709, -7735, -7682, -7625, -7638, -7448, -7483, -7435, -7368, -7625, -7430, -7492, -7209, -6630, -6361, -6383, -6648, -5370, -2117, 1644, 4584, 6697, 4650, -389, -3934, -5450, -7293, -8093, -7501, -7306, -7143, -7306, -6803, -6502, -7024, -7302, -7505, -7386, -7121, -7063, -7271, -7461, -7143, -7187, -7085, -7236, -7430, -7161, -7240, -7112, -7214, -7399, -7426, -7275, -7156, -6966, -7125, -6900, -6780, -6657, -6692, -6577, -6391, -6294, -5905, -5914, -5521, -5101, -5030, -4866, -4579, -4469, -4327, -4009, -3607, -4066, -3894, -4044, -3797, -3929, -4332, -5145, -5556, -5662, -5614, -5485, -5454, -5552, -5653, -6387, -6515, -6767, -6895, -7001, -7209, -7329, -7298, -7426, -7284, -7497, -7346, -7306, -7169, -7289, -7245, -7359, -7306, -7421, -7293, -7275, -7130, -7306, -7386, -7275, -7302, -7174, -7063, -7116, -7253, -7293, -7196, -7351, -7373, -7245, -7567, -7474, -7368, -7390, -7501, -7558, -7492, -7651, -7395, -7253, -7567, -7483, -7390, -7664, -8009, -8067, -8036, -7969, -7952, -7753, -7810, -8031, -7952, -7952, -7771, -7572, -7532, -7687, -7656, -7748, -7585, -7311, -7461, -7638, -7952, -7572, -7629, -7262, -6887, -6904, -7010, -7063, -7258, -7669, -7673, -8053, -8129, -8332, -8478, -8469, -8579, -8411, -8619, -8235, -8217, -8053, -8137, -8089, -8235, -7952, -7806, -7382, -6577, -6197, -6617, -6391, -4517, -1339, 813, 2206, 1693, -2961, -6741, -7576, -8093, -9004, -8186, -7413, -7165, -7554, -7616, -7377, -7673, -8425, -8800, -8686, -8522, -8266, -8677, -8756, -8681, -8562, -8553, -8655, -8734, -8686, -8584, -8562, -8641, -8712, -8686, -8350, -8328, -8372, -8420, -8411, -8111, -8093, -7855, -7885, -7877, -7585, -7329, -7346, -7094, -7081, -6555, -6312, -6056, -6033, -6007, -5759, -5547, -5304, -5264, -5468, -5468, -5538, -5587, -5812, -5998, -5998, -6334, -6639, -6864, -7320, -7320, -7664, -7969, -7934, -8137, -8385, -8442, -8500, -8491, -8681, -8641, -8442, -8266, -8509, -8403, -8367, -8186, -8023, -8000, -7885, -7832, -7908, -7748, -7753, -7647, -7576, -7629, -7479, -7501, -7660, -7567, -7368, -7492, -7505, -7404, -7576, -7616, -7483, -7532, -7687, -7828, -7859, -7748, -7824, -7718, -7837, -7841, -7735, -7837, -7744, -7850, -7832, -7978, -8089, -8031, -8142, -8098, -7969, -8098, -8045, -7894, -8098, -7947, -8084, -7810, -7930, -8089, -8420, -8314, -8115, -7744, -7359, -7112, -6979, -7037, -7452, -7585, -7872, -8027, -8363, -8522, -8403, -8173, -8310, -8354, -8513, -8403, -8438, -8314, -8367, -8266, -8151, -8173, -8036, -7850, -7267, -6643, -6617, -6670, -4959, -955, 2383, 4699, 5791, 4341, -137, -3620, -6117, -8310, -8593, -7855, -7629, -7828, -7744, -7505, -8111, -8628, -8827, -8814, -8876, -8924, -8902, -8840, -8823, -8867, -8911, -8902, -8854, -8827, -8606, -8655, -8637, -8584, -8562, -8350, -8398, -8376, -8314, -8297, -8089, -7890, -7872, -7788, -7505, -7311, -7368, -7081, -7010, -6475, -6285, -6069, -5773, -5450, -5432, -5220, -4765, -4760, -4676, -4628, -4685, -4765, -4774, -4959, -5163, -5459, -5808, -6095, -6555, -6754, -7050, -7143, -7439, -7881, -8062, -8106, -8226, -8261, -8429, -8336, -8372, -8482, -8522, -8442, -8358, -8376, -8465, -8509, -8451, -8381, -8381, -8451, -8244, -8465, -8129, -8381, -8182, -8239, -8213, -8394, -8363, -8182, -8261, -8226, -8385, -8350, -8434, -8522, -8500, -8659, -8610, -8686, -8526, -8526, -8420, -8606, -8398, -8518, -8531, -8686, -8602, -8659, -8774, -8544, -8456, -8615, -8372, -8495, -8292, -8469, -8350, -8363, -8226, -8301, -8217, -8102, -8098, -8208, -8531, -8473, -8389, -8137, -7713, -7514, -7435, -7068, -7324, -7408, -7735, -7947, -8129, -8381, -8465, -8535, -8509, -8677, -8637, -8460, -8553, -8522, -8668, -8624, -8460, -8562, -8531, -8416, -8367, -7943, -7289, -7775, -7841, -6511, -3408, -548, 1702, 3196, 128, -4822, -7275, -8009, -8579, -8694, -8155, -7620, -8027, -8535, -8398, -8177, -8668, -9269, -9543, -9247, -9057, -9207, -9225, -9269, -9026, -8827, -8924, -9167, -8982, -8809, -8867, -8641, -8610, -8973, -8809, -8624, -8403, -8597, -8425, -8301, -8129, -7881, -8045, -7881, -7536, -7386, -7355, -6966, -6838, -6776, -6352, -6307, -6166, -6038, -6002, -5852, -5790, -5892, -5764, -6020, -5879, -6064, -6144, -6537, -6803, -6948, -7390, -7457, -7850, -8129, -8283, -8716, -8765, -8907, -9203, -9349, -9503, -9552, -9693, -9738, -9636, -9525, -9547, -9662, -9459, -9397, -9539, -9265, -9380, -9455, -9393, -9287, -9273, -9362, -9176, -9145, -9296, -9247, -9335, -9176, -9167, -9052, -9238, -9039, -9167, -9172, -9318, -9229, -9296, -9163, -9189, -9326, -9220, -9278, -9410, -9441, -9592, -9490, -9534, -9662, -9698, -9605, -9512, -9786, -9627, -9945, -9875, -9782, -9791, -9879, -9671, -9627, -9791, -9760, -9592, -9680, -9636, -9525, -9242, -9075, -8893, -8845, -8478, -8451, -8778, -9092, -9079, -9287, -9512, -9300, -9371, -9618, -9539, -9512, -9313, -9380, -9353, -9521, -9490, -9561, -9384, -9375, -9273, -9472, -9017, -8120, -7377, -7731, -7797, -6334, -2811, 111, 2016, 2807, -389, -5278, -7753, -8800, -10228, -9923, -8915, -8465, -8602, -8602, -8049, -8372, -8920, -9309, -9393, -9172, -9198, -9172, -9296, -9150, -9189, -8929, -9145, -9269, -9154, -8964, -8946, -9110, -9234, -9159, -8999, -8708, -8840, -8937, -8628, -8761, -8456, -8557, -8403, -8376, -8248, -7939, -7523, -7373, -7324, -6931, -6639, -6480, -6312, -6020, -5905, -5596, -5675, -5512, -5503, -5401, -5600, -5658, -5768, -6042, -6206, -6648, -6701, -7085, -7377, -7797, -7969, -8283, -8411, -8456, -8876, -8765, -8809, -9198, -9234, -9154, -9318, -9331, -9185, -9247, -9172, -9313, -9052, -9176, -9242, -9172, -9066, -9061, -9154, -9220, -9172, -9335, -9313, -9402, -9225, -9198, -9344, -9291, -9375, -9225, -9472, -9349, -9291, -9366, -9468, -9464, -9618, -9552, -9362, -9472, -9715, -9601, -9552, -9631, -9720, -9707, -9614, -9817, -9609, -9711, -9715, -9623, -9556, -9601, -9433, -9707, -9614, -9808, -9592, -9194, -8964, -8849, -8734, -8509, -8641, -8429, -8593, -8725, -8995, -9384, -9468, -9671, -9804, -9786, -9901, -9994, -9941, -9826, -9791, -9879, -9963, -9936, -10091, -9795, -9879, -9954, -9671
+};
+
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
+static void MX_UART4_Init(void);
+static void MX_SPI2_Init(void);
+static void MX_TIM2_Init(void);
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+void stop_streaming(void);
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart); //poziva se nakon prijenosa svakog paketa
+void start_stream(void);
+void send_packet(void);
+int generate_ecg_sample(void);
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim); //poziva sa frekvnecijom 128 Hz
+
+
+
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_UART4_Init();
+  MX_SPI2_Init();
+  MX_TIM2_Init();
+  /* USER CODE BEGIN 2 */
+
+  HAL_TIM_Base_Start_IT(&htim2);
+  HAL_UART_Receive_IT(&huart4, &rx_byte, 1); //omogucujemo interrupt da povežemo python sa mikrokontrolerom
+
+  myPacket.header = 0xAA;
+  myPacket.footer = 0x0A;
+  myPacket.ecg_raw = 0;
+  myPacket.bpm = 0;
+//  MAX30003_Init(&hspi2);
+
+
+
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+	  if (streaming)
+	    {
+	      if(transfer_complete == 0){
+	    	  transfer_complete = 1;
+	    	 // ecg_data = MAX30003_ReadECG(&hspi2);
+	    	  ecg_data = generate_ecg_sample();
+	    	  bpm_main = PanTompkins_Process(ecg_data);
+	    	  myPacket.ecg_raw = ecg_data;
+	    	  myPacket.bpm = bpm_main;
+	    	  HAL_UART_Transmit(&huart4, (uint8_t*)&myPacket, sizeof(myPacket), 5); //5 ms timeout
+
+
+	      }
+	    }
+	    else
+	    {
+	      // Kad nema streaming, provjeri UART komande
+	    }
+
+
+
+  }
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Configure the main internal regulator output voltage
+  */
+  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 9;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 7;
+  hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 3600;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 78;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief UART4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART4_Init(void)
+{
+
+  /* USER CODE BEGIN UART4_Init 0 */
+
+  /* USER CODE END UART4_Init 0 */
+
+  /* USER CODE BEGIN UART4_Init 1 */
+
+  /* USER CODE END UART4_Init 1 */
+  huart4.Instance = UART4;
+  huart4.Init.BaudRate = 115200;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART4_Init 2 */
+
+  /* USER CODE END UART4_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMAMUX1_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+  /* DMA1_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : B1_Pin */
+  GPIO_InitStruct.Pin = B1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LPUART1_TX_Pin LPUART1_RX_Pin */
+  GPIO_InitStruct.Pin = LPUART1_TX_Pin|LPUART1_RX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF12_LPUART1;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
+}
+
+/* USER CODE BEGIN 4 */
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+//Nakon što se triggera interrupt na rx, ova se funkcija automatski poziva
+
+{
+    if (huart->Instance == UART4)
+    {
+        if (rx_byte == '\n')   // kraj poruke, poruke koje šaljemo iz pythonu moraju zavrsavat na '\n'
+        {
+            rx_buffer[rx_index] = '\0';
+            rx_index = 0;
+
+            if (strcmp(rx_buffer, "#?#") == 0)
+            {
+                // SYNC zahtjev saljemo sa uartom u python skriptu
+            	//preko uarta5 šaljemo znak !, koji sadrži samo jedan bajt i timeout je 100ms
+                HAL_UART_Transmit(&huart4, (uint8_t*)"!", 1, 100);
+            }
+            else if (strcmp(rx_buffer, "#A#") == 0)
+            {
+            	//strcmp(a,b) - usporedjuje dva stringa i ako su jednaki vraca nulu
+                // START STREAM
+            	HAL_UART_Receive_IT(&huart4, &rx_byte, 1);
+            	start_stream();
+            }
+            else if (strcmp(rx_buffer, "#S#") == 0)
+            {
+                // STOP STREAM
+                stop_streaming();
+            }
+            else if(strcmp(rx_buffer, "#D#") == 0)
+            {
+
+            }
+        }
+        else
+        {
+            rx_buffer[rx_index++] = rx_byte;
+            if (rx_index >= sizeof(rx_buffer))
+                rx_index = 0;
+        }
+
+        HAL_UART_Receive_IT(&huart4, &rx_byte, 1);
+
+    }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim){
+	if(htim->Instance == TIM2){
+
+		if (streaming)
+			   {
+			      transfer_complete = 0; //znaci da mozemo po sljedeci podatak sa SPI
+
+			   }
+
+	}
+
+
+}
+
+
+void stop_streaming(void)
+{
+	transfer_complete = 0;
+    streaming = 0;
+    HAL_UART_AbortTransmit(&huart4);
+}
+
+
+void start_stream(void){
+	if (!streaming)
+	  {
+	    streaming = 1;
+	    transfer_complete = 1;
+	  }
+}
+
+
+
+int generate_ecg_sample(void)
+	{
+    if(mock_index == 46080){
+    	mock_index = 0;
+    }
+    mock_index += 1;
+    int sample = ecg_mock_data[mock_index];
+    return ecg_mock_data[mock_index];
+
+	}
+
+
+
+
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+
+#ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */

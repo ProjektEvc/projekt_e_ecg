@@ -74,7 +74,7 @@ class ComGui():  #Klasa za komunikaciju sa uC
         self.serial.getCOMList() 
         self.clicked_com = StringVar() #Nije običan string, ovo je objekt "Stringa" nad kojim je moguće proučavat izmjene
         self.clicked_com.set(self.serial.com_list[0])
-        self.drop_com = OptionMenu(self.frame, self.clicked_com, *self.serial.com_list, command = self.connect_ctrl) #Večina ovih funkcija ima oblik fun(root, user_defined_objekt, dodatni uvjeti)
+        self.drop_com = OptionMenu(self.frame, self.clicked_com, *self.serial.com_list, command = self.connect_ctrl) #Većina ovih funkcija ima oblik fun(root, user_defined_objekt, dodatni uvjeti)
         # * kod coms označava cijelu listu
         self.drop_com.config(width= 10)
 
@@ -100,7 +100,7 @@ class ComGui():  #Klasa za komunikaciju sa uC
 
 
 
-    #razlog zašto ovdjet treba argument other je zato što OptionMenu prosljeđuje trenutno odabratnu vrijednost Menu-a, pa nam trebaju i self i other
+    #razlog zašto ovdjet treba argument other je zato što OptionMenu prosleđuje trenutno odabratnu vrijednost Menu-a, pa nam trebaju i self i other
     def connect_ctrl(self, other):
         print("Connect cntrl")
         if "-" in self.clicked_com.get() or "-" in self.clicked_bd.get():
@@ -150,13 +150,7 @@ class ComGui():  #Klasa za komunikaciju sa uC
         else:
             self.serial.threading = False 
             self.conn.save = False
-            try:
-                while len(self.conn.chartMaster.frames) > 0:
-                    self.conn.kill_chart()
-            except Exception as e:
-                print(f"Failed while closing the connection {e}")
 
-           
             self.serial.SerialClose(self)
             self.conn.ConnGUIClose()
             self.data.ClearData()
@@ -180,7 +174,7 @@ class ConnGUI():
 
         self.frame = LabelFrame(root, text = "Connection Manager", padx = 5, pady = 5, bg = "white", width = 60)
         
-        #Labela ..Sync.. će biti narančasta sve dok se uC nije upario sa našom komunikacijom 
+        #Labela ..Sync.. će biti narandžasta sve dok se uC nije upario sa našom komunikacijom 
         self.sync_label = Label(self.frame, text="Sync Status: ", bg="white", width=15, anchor="w")
         self.sync_status = Label(self.frame, text="..Sync..", bg="white", fg="orange", width=5)
 
@@ -198,11 +192,6 @@ class ConnGUI():
         #ovaj gumb pokreće komandu koja zasutavlja stream, gumb je isključen ako stream nije uključen
         self.btn_stop_stream = Button(self.frame, text = "Stop", state = "disabled", width = 5, command = self.stop_stream)
 
-        #gumbovi za postavljanje, odnosno brisanje grafova
-        self.btn_add_chart = Button(self.frame, text = "+", state = "disabled", width = 5, bg = "white", fg = "#098577", command = self.new_chart)
-        self.btn_remove_chart = Button(self.frame, text = "-", state = "disabled", width = 5, bg = "white", fg = "#CC252C", command = self.remove_chart)
-
-
 
         #Gumb za postavljenje lokacije za spremanje podataka
         self.btn_save_location = Button(self.frame, text="Choose folder", width=10, state="disabled", command=self.ChooseSaveLocation, bg="white", fg = "yellow")
@@ -215,19 +204,16 @@ class ConnGUI():
         self.SaveVar = IntVar()
         self.save_check = Checkbutton(self.frame, text = "Save Data", variable = self.SaveVar, onvalue = 1, offvalue = 0, bg = "white", state="disabled", command = self.save_data)
 
-        #Ovdje cemo implementirat funkciju tako da sami mozemo birat hocemo li primati ili slat podatke i od kuda cemo uzimat te podatke
-
-        
-
-
         self.ConnGUIOpen()
         self.chartMaster = DisGUI(self.root, self.serial, self.data)
+        # Automatically create one graph when ConnGUI is initialized
+        self.chartMaster.AddSingleGraph()
 
     
     #ova funkcija će raditi slično što i publish()
     def ConnGUIOpen(self):
 
-        self.root.geometry("1000x120")
+        self.root.geometry("1000x570")  # Adjusted for single graph display
         self.frame.grid(row = 0, column = 4,rowspan = 3, columnspan = 6, padx = 5, pady = 5)
         
         self.sync_label.grid(column=1, row=1)
@@ -239,11 +225,7 @@ class ConnGUI():
         self.btn_start_stream.grid(column = 3, row = 1, padx = self.padx)
         self.btn_stop_stream.grid(column = 3, row = 2, padx = self.padx)
 
-        self.btn_add_chart.grid(column = 4, row = 1, padx = self.padx)
-        self.btn_remove_chart.grid(column = 5, row = 1, padx = self.padx)
-
         self.save_check.grid(column = 4, row = 2, columnspan = 2)
-
 
         self.btn_save_location.grid(column=6, row=1, padx=5, pady=5)
         self.save_location_label.grid(column=6, row=2,columnspan = 2, padx=5, pady=5, sticky=W)
@@ -282,48 +264,32 @@ class ConnGUI():
 
     def UpdateChart(self):
         try:
+            # Update BPM label
+            bpm_label = self.chartMaster.bpm_value_label
+            current_bpm = self.data.currBPM
 
-            for i in range(len(self.chartMaster.ControlFrames)):
+            if(current_bpm <= 100 and current_bpm >= 60):
+                bpm_label.config(text=str(self.data.currBPM), fg = "green")
+            else:
+                bpm_label.config(text=str(self.data.currBPM), fg = "red")
 
-                 #self.ControlFrames = [LabelFrame, Gumb za +, gumb za -, natpis BPM, broja za BPM]
-            # The BPM label is at index 1 in our new ControlFrames list structure
-            # Accessing the stored Label object
-                bpm_label = self.chartMaster.ControlFrames[i][4] 
-                current_bpm = self.data.currBPM
-
-                if(current_bpm <= 100 and current_bpm >= 60):
-                    bpm_label.config(text=str(self.data.currBPM), fg = "green")
-                else:
-                    bpm_label.config(text=str(self.data.currBPM), fg = "red")
-
-
-            #myDisplayChannels = []
-            for MyChannelOpt in range(len(self.chartMaster.ViewVar)):
-                #prolazimo koz sve ViewVar-ove koje imamo i gledamo što je označeno na njima
-                self.chartMaster.figs[MyChannelOpt][1].clear()
-                for cnt, state in enumerate(self.chartMaster.ViewVar[MyChannelOpt]):
-                    if state.get(): #ako je checkmark označen
-                        MyChannel = self.chartMaster.OptionVar[MyChannelOpt][cnt].get()
-                        #myDisplayChannels.append(MyChannel)
-                        ChannelIndex = self.data.ChannelNum[MyChannel] #channelNum je dictionary
-                        FuncName = self.chartMaster.FunVar[MyChannelOpt][cnt].get() 
-                        
-                        self.chart = self.chartMaster.figs[MyChannelOpt][1]
-                        self.color = self.data.ChannelColor[MyChannel] #channelColor je dioctionary
-                        self.y = self.data.YDisplay[ChannelIndex]
-                        self.x = self.data.XDisplay
-                        self.data.FunctionMaster[FuncName](self) #pozivamo funkciju
-
-                self.chartMaster.figs[MyChannelOpt][1].grid(color = 'blue', linestyle = '-', linewidth = 0.2)
-                self.chartMaster.figs[MyChannelOpt][0].canvas.draw()
-            #print(myDisplayChannels)
+            # Clear and redraw the graph
+            self.chartMaster.ax.clear()
+            
+            # Get the selected display function
+            selected_function = self.chartMaster.display_mode.get()
+            
+            # Call the appropriate display function
+            self.data.FunctionMaster[selected_function](self)
+            
+            self.chartMaster.ax.grid(color='blue', linestyle='-', linewidth=0.2)
+            self.chartMaster.canvas.draw()
+            
         except Exception as e:
             print(f"Error in the UpdateChart: {e}")
         
         if self.serial.threading:
-            self.root.after(5,self.UpdateChart) #ovo je funkcija od Tkinter-a, koja piziva sam sama sebe svakih 40ms
-
-
+            self.root.after(5, self.UpdateChart)
 
 
     def stop_stream(self):
@@ -334,35 +300,6 @@ class ConnGUI():
         except Exception as e:
             print(f"Greška pri slanju stop komande: {e}")
         self.serial.threading = False
-        
-
-
-
-    def new_chart(self):
-        self.chartMaster.AddChannelMaster()
-
-    def remove_chart(self):
-        try: 
-            if len(self.chartMaster.frames) > 0:
-                totalFrame = len(self.chartMaster.frames) - 1
-                self.chartMaster.frames[totalFrame].destroy()
-                self.chartMaster.frames.pop() #zadnji element brisemo
-                self.chartMaster.figs.pop()
-                self.chartMaster.ControlFrames[totalFrame][0].destroy() #na nultoj lokaicji je 
-                self.chartMaster.ControlFrames.pop()
-
-                #na nultoj lokaciji u ChannelFrameu se nalazi LabelFrame za kanale i funkcije grafa
-                self.chartMaster.ChannelFrame[totalFrame][0].destroy()  
-
-                self.chartMaster.ChannelFrame.pop()
-                self.chartMaster.ViewVar.pop()
-                self.chartMaster.OptionVar.pop()
-                self.chartMaster.FunVar.pop()
-
-
-                self.chartMaster.AdjustRootFrame()
-        except:
-            pass
 
 
     def save_data(self): #nakon što kliknemo checkbox odlazimo u ovu funkciju
@@ -379,216 +316,54 @@ class DisGUI():
         self.serial = serial
         self.data = data
 
-        #ova lista će sadržavat sve frame-ove koji se odnose na display dio GUI-a
-        self.frames = []
-        self.framesCol = 0
-        self.framesRow = 4  #prva tri reda se koriste za connGui i ComGui
-        self.totalframes = 0 #prati broj frame-ova koje imamo
+        # Single graph frame
+        self.frame = None
+        self.fig = None
+        self.ax = None
+        self.canvas = None
+        self.bpm_value_label = None
+        self.display_mode = None
 
+    def AddSingleGraph(self):
+        # Create main frame for the single graph
+        self.frame = LabelFrame(self.root, text="ECG Monitor", padx=5, pady=5, bg="white")
+        self.frame.grid(padx=5, column=0, row=4, columnspan=9, sticky=NW)
 
-        self.figs = [] #data
+        # Create control frame for BPM display and function selector
+        control_frame = LabelFrame(self.frame, pady=5, bg="white")
+        control_frame.grid(column=0, row=0, padx=5, pady=5, sticky=N)
 
-
-        self.ControlFrames = [] #ovdje će se nalazit gumbovi i labelFrame za + - kod svakog grafa
-
-
-        self.ChannelFrame = [] # [[LabelFrame, index_Of_LabelFrame]   ]
-        self.ViewVar = []
-        self.OptionVar = []
-        self.FunVar = []
-
-
-    def AddChannelMaster(self): #ova funkcija će stvarat nove framove
-        self.AddMasterFrame()
-        self.AdjustRootFrame() #svaki put trebamo promijenit veličinu Root Frame-a
-        self.AddGraph()
-        self.AddChannelFrame()
-        self.AddBtnFrame()
-
-    def AddMasterFrame(self):
-        self.frames.append(LabelFrame(self.root, text = f"Display Manager - {len(self.frames)+1}", padx = 5, pady = 5, bg = "white"))
-        self.totalframes = len(self.frames) - 1
-
-        if self.totalframes % 2 == 0:
-            self.framesCol = 0
-        else:
-            self.framesCol = 9 #zbroj columna od Conn i Com gui-a
-
-        self.framesRow = 4 + 4 * int(self.totalframes/2)
-        #Dodajemo novo addani frame (novi indeks = len(svih frameova))
-        self.frames[self.totalframes].grid(padx = 5, column = self.framesCol, row = self.framesRow, columnspan = 9, sticky = NW) 
-        #Sticky znači da će se nas widget(u ovom slučaju frame) "pokušat zalijepit" u NorthWest stranu
-
-
-
-    #povecanja/smanjivanje root-a kod dodavanja/micanja grafa
-    def AdjustRootFrame(self):
-        self.totalframes = len(self.frames) -1 
-
-        if self.totalframes > 0:
-            RootW = 1000*2  #Širina Root-a
-
-        else:
-            RootW = 1000
-
-
-        if self.totalframes+1 == 0:
-            RootH = 120
-
-        else:
-            RootH = 120 + 450 * (int(self.totalframes/2) +1)
-        self.root.geometry(f"{RootW}x{RootH}")
+        # BPM label
+        bpm_text_label = Label(control_frame, text="BPM: ", bg="white")
+        bpm_text_label.grid(column=0, row=0, padx=5, pady=5)
         
+        self.bpm_value_label = Label(control_frame, text="--", bg="white", fg="green", 
+                                      font=("Arial", 14, "bold"))
+        self.bpm_value_label.grid(column=1, row=0, padx=5, pady=5)
 
-    def AddGraph(self):
-        self.figs.append([])
-        #figs je lista lista
-        #na novi graf čemo appendat listu koja sdrži podatke za taj određeni graf
-        # figs[i] =  [ figure (graf) ] lista na mjestu i
-        self.figs[self.totalframes].append(plt.figure(figsize = (7,5), dpi = 80))
-
-        # na mjestu 0 u fig[i] listi dodajemo subplot
-        self.figs[self.totalframes].append(self.figs[self.totalframes][0].add_subplot(111))
-
-        self.figs[self.totalframes].append(FigureCanvasTkAgg(self.figs[self.totalframes][0], master = self.frames[self.totalframes]))
-
-        #dodajemo ga u grid
-        #rowspan je toliki za dodavnje više kanala odjednom, a column span je tu jer dio će zauzimat graf, a dio zauzima frame od channel managera
-        self.figs[self.totalframes][2].get_tk_widget().grid(column = 1, row = 0, rowspan = 17, columnspan = 4, sticky = N)
-
-
-
-
-    def AddBtnFrame(self):
-
-
-
-        btnH = 2
-        btnW = 4
-
-        self.ControlFrames.append([])
-        #na nulto mjesto u listi dodajemo Frame za naše gumbove
-        self.ControlFrames[self.totalframes].append(LabelFrame(self.frames[self.totalframes], pady = 5, bg = "white"))
-        self.ControlFrames[self.totalframes][0].grid(column = 0, row = 0, padx = 5, pady = 5, sticky = N)
-        #Na mjestu self.totalframes se nalazi naš frame za gumb, na nultoj lokaciji se nalazi LabelFrame  (pravi objekt za taj frame), i njega smo stavili na grid
-        #u listu dodajemo gumb  List = [LabelFrame, gumb]
-        self.ControlFrames[self.totalframes].append(Button(self.ControlFrames[self.totalframes][0], text = "+", bg = "white", width = btnW, height = btnH, command = partial(self.AddChannel, self.ChannelFrame[self.totalframes])))
-        self.ControlFrames[self.totalframes][1].grid(column = 0, row = 0, padx = 5, pady = 5)
-
-
-        # Label to show "BPM:" text
-       # self.bpm_text_label = Label(self.ControlFrames[self.totalframes][0], text="BPM:", bg="white", font=("Arial", 10, "bold"))
-       # self.bpm_text_label.grid(column=0, row=4, pady=2)
-
-        # The actual BPM value label (stored at index 3 in ControlFrames list)
-       # self.bpm_value_label = Label(self.ControlFrames[self.totalframes][0], text="--", bg="white", fg="red", font=("Arial", 14, "bold"))
-       # self.bpm_value_label.grid(column=1, row=1, pady=2)
-       # self.ControlFrames[self.totalframes].append(self.bpm_value_label) # Store reference at index 3
-
-        self.ControlFrames[self.totalframes].append(Button(self.ControlFrames[self.totalframes][0], text = "-", bg = "white", width = btnW, height = btnH, command = partial(self.DeleteChannel, self.ChannelFrame[self.totalframes])))
-        self.ControlFrames[self.totalframes][2].grid(column = 1, row = 0, padx = 5, pady = 5)
-
-        #sad nam contorlFrames lista sadri [LabelFrame, gumb (+), gumb (-)]
-
-
-        #koristimo partial.function(args) jer sa "normalnom sintaksom", command = self.function, nebi mogli posalti argumente
-
-        self.ControlFrames[self.totalframes].append(Label(self.ControlFrames[self.totalframes][0], text = "BPM: ", bg = "white"))
-        self.ControlFrames[self.totalframes][3].grid(column = 0, row = 1, padx = 5, pady = 5)
-        self.ControlFrames[self.totalframes].append(Label(self.ControlFrames[self.totalframes][0], text = " -- ", bg = "white", fg = "green"))
-        self.ControlFrames[self.totalframes][4].grid(column = 1, row = 1, padx = 5, pady = 5)
-
-        #Kad bi imali više kanala tu bi mogli imat [bpm1,bpm2,bpm3,bpm4,...]
-
-
-
-    def AddChannelFrame(self):
-        self.ChannelFrame.append([])
-        self.ViewVar.append([])
-        self.OptionVar.append([])
-        self.FunVar.append([])
-
-        #ChannelFrame = [[LabelFrame1, index1], [labelFrame2, index2],...]
-        self.ChannelFrame[self.totalframes].append(LabelFrame(self.frames[self.totalframes], pady = 5, bg = "white"))
-        self.ChannelFrame[self.totalframes].append(self.totalframes)
-        #moramo dodati novi Frame na grid
-        #prvi row obuhvaća gumbove + i -, ostalih 16 mjesta odlazi na ovaj frame
-        self.ChannelFrame[self.totalframes][0].grid(column = 0, row = 1, padx = 5, pady = 5, rowspan = 16, sticky = N)
-
-        self.AddChannel(self.ChannelFrame[self.totalframes]) #ova funkcija će stvarat male framove na mjesti za svaki kanal
-
-
-    def AddChannel(self, ChannelFrame):
-
-        #winfo_children gleda koliko widgeta sadrži naš LabelFrame 
-        if len(ChannelFrame[0].winfo_children()) < 4:
-            NewFrameChannel = LabelFrame(ChannelFrame[0], bg = "white") #LabelFrame(root, args..)
-
-
-        #Ako zamislimo da smo imali npr. 3 frame-a za kanale i gore smo kreirali novi NewFrameChannel tada će .winfo_children izbaciti van 4
-        #A mi zelimo stavit okvir na mjesto 3
-        NewFrameChannel.grid(column = 0, row = len(ChannelFrame[0].winfo_children()) - 1)
-
-
-        #ChannelFrame = [[LabelFrame za kanal maanger 1, index1],.. ]
-        self.ViewVar[ChannelFrame[1]].append(IntVar())
+        # Display mode selector
+        mode_label = Label(control_frame, text="Display Mode:", bg="white")
+        mode_label.grid(column=0, row=1, padx=5, pady=5)
         
-        #Ovaj gumb će omoguciti ili nece omoguciti da vidimo graf tog kanala
-        #ViewVar = [[ch1, ch2, ch3,.....],[],[]],....]
-        Ch_btn = Checkbutton(NewFrameChannel, variable=self.ViewVar[ChannelFrame[1]][len(self.ViewVar[ChannelFrame[1]])-1],onvalue=1, offvalue=0, bg="white")
-        Ch_btn.grid(row = 0, column = 0, padx = 1) #za svaki checkbox radimo novi frame pa ovdje nije potrebno dirat column  i row 
-        self.ChannelOption(NewFrameChannel, ChannelFrame[1])
-        self.ChannelFunc(NewFrameChannel, ChannelFrame[1])
-
-
-
-
-    #frame je mali okvir stvoren u funkciji AddChannel (NewFrameChannel), ChannelFrameNumber je samo ChannelFrame[1] da znam na koji se graf fokusiramo
-
-    def ChannelOption(self, frame, ChannelFrameNumber):
+        self.display_mode = StringVar()
+        display_functions = list(self.data.FunctionMaster.keys())
+        self.display_mode.set(display_functions[0])  # Default to first option
         
-        #ova varijabla će pamtiti što je korisnik odabrao u dropdownu
-        self.OptionVar[ChannelFrameNumber].append(StringVar())
+        mode_dropdown = OptionMenu(control_frame, self.display_mode, *display_functions)
+        mode_dropdown.config(width=12, bg="white")
+        mode_dropdown.grid(column=1, row=1, padx=5, pady=5)
 
-        bds = self.data.Channels #Nama ce ovo bit jedan za sad jer imamo jedan kanal i u sinkronizaciji stm32 nije navedeno nista u vezi broja kanala
-
-        #ova linija pronalazi malo prije postavljeni StringVar i na njegovo pocetnto mjesto stavlja prvi dostupni kanal
-        self.OptionVar[ChannelFrameNumber][len(self.OptionVar[ChannelFrameNumber]) - 1].set(bds[0])
-
-        drop_ch = OptionMenu(frame, self.OptionVar[ChannelFrameNumber][len(self.OptionVar[ChannelFrameNumber]) - 1], *bds)
-        drop_ch.config(width = 5)
-        drop_ch.grid(row = 0, column = 1, padx = 1)
-
-    
-    #Gotovo pa ista funkcio kao i ChannelOption() samo što ovdje odabiremo funkcije a ne kanale
-    def ChannelFunc(self, frame, ChannelFrameNumber):
+        # Create the matplotlib figure
+        self.fig = plt.figure(figsize=(7, 5), dpi=80)
+        self.ax = self.fig.add_subplot(111)
         
-        #ova varijabla će pamtiti što je korisnik odabrao u dropdownu
-        self.FunVar[ChannelFrameNumber].append(StringVar())
-
-        bds = [func for func in self.data.FunctionMaster.keys()] #Nama ce ovo bit jedan za sad jer imamo jedan kanal i u sinkronizaciji stm32 nije navedeno nista u vezi broja kanala
-
-        #ova linija pronalazi malo prije postavljeni StringVar i na njegovo pocetnto mjesto stavlja prvi dostupni kanal
-        self.FunVar[ChannelFrameNumber][len(self.OptionVar[ChannelFrameNumber]) - 1].set(bds[0])
-
-        drop_ch = OptionMenu(frame, self.FunVar[ChannelFrameNumber][len(self.FunVar[ChannelFrameNumber]) - 1], *bds)
-        drop_ch.config(width = 5)
-        drop_ch.grid(row = 0, column = 2, padx = 1)
-
-
-    #Ova funkcija će micat male kanale za pojedine grafove
-    def DeleteChannel(self, ChannelFrame):
-        if len(ChannelFrame[0].winfo_children()) > 1: #ako imamo više od jednog kanala, uvijek bi tjeli iamti barem jedan kanal
-            ChannelFrame[0].winfo_children()[len(ChannelFrame[0].winfo_children()) - 1].destroy()
-            #moramo se sjetit da winfo_children šalje widget vezan uz neki frame
-
-            self.ViewVar[ChannelFrame[1]].pop()
-            self.FunVar[ChannelFrame[1]].pop()
-            self.OptionVar[ChannelFrame[1]].pop()
+        # Create canvas
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
+        self.canvas.get_tk_widget().grid(column=1, row=0, rowspan=17, columnspan=4, sticky=N)
 
 
 if __name__ == "__main__":
-    RootGUI() #Ova sintaksa govori ubiti da će se Prozor otvoriti samo u main, a ne svaki put kada importamo file bilo gdje drugdje
+    RootGUI()
     ComGui()
     ConnGUI()
     DisGUI()
